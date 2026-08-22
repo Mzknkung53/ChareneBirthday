@@ -1,39 +1,42 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { submitWish } from '@/app/actions/wishes';
 import { Button } from '@/components/ui/Button';
 import { MessageField } from '@/components/ui/MessageField';
-import { PhotoDrop } from '@/components/ui/PhotoDrop';
+import { MediaDrop } from '@/components/ui/MediaDrop';
 import { StickerPicker } from '@/components/ui/StickerPicker';
 import { TextField } from '@/components/ui/TextField';
 import { WishPreview } from '@/components/wishes/WishPreview';
-import type { ServiceResult, BirthdayWish, WishDraft } from '@/types';
-import { NAME_MAX, hasErrors, validateWish, type WishErrors } from '@/utils/validation';
+import type { WishDraft, WishMediaType } from '@/types';
+import { NAME_MAX, hasErrors, mediaKind, validateWish, type WishErrors } from '@/utils/validation';
 
 interface WishFormProps {
-  onSubmit: (draft: WishDraft) => Promise<ServiceResult<BirthdayWish>>;
   onSent?: () => void;
 }
 
-const EMPTY: WishDraft = { displayName: '', handle: '', message: '', sticker: '♡', image: null };
+const EMPTY: WishDraft = { displayName: '', handle: '', message: '', sticker: '♡', media: null };
 
-export function WishForm({ onSubmit, onSent }: WishFormProps) {
+export function WishForm({ onSent }: WishFormProps) {
   const [draft, setDraft] = useState<WishDraft>(EMPTY);
   const [errors, setErrors] = useState<WishErrors>({});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewMediaType, setPreviewMediaType] = useState<WishMediaType | null>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!draft.image) {
+    if (!draft.media) {
       setPreviewUrl(null);
+      setPreviewMediaType(null);
       return;
     }
-    const url = URL.createObjectURL(draft.image);
+    const url = URL.createObjectURL(draft.media);
     setPreviewUrl(url);
+    setPreviewMediaType(mediaKind(draft.media));
     return () => URL.revokeObjectURL(url);
-  }, [draft.image]);
+  }, [draft.media]);
 
   const set = <K extends keyof WishDraft>(key: K, value: WishDraft[K]) => {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -49,7 +52,7 @@ export function WishForm({ onSubmit, onSent }: WishFormProps) {
 
     setSending(true);
     setFailure(null);
-    const res = await onSubmit(draft);
+    const res = await submitWish(draft);
     setSending(false);
 
     if (res.error || !res.data) {
@@ -90,7 +93,13 @@ export function WishForm({ onSubmit, onSent }: WishFormProps) {
         />
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <PhotoDrop file={draft.image ?? null} previewUrl={previewUrl} error={errors.image} onPick={(file) => set('image', file)} />
+          <MediaDrop
+            file={draft.media ?? null}
+            previewUrl={previewUrl}
+            mediaType={previewMediaType}
+            error={errors.media}
+            onPick={(file) => set('media', file)}
+          />
           <StickerPicker value={draft.sticker} onSelect={(s) => set('sticker', s)} />
         </div>
 
@@ -106,11 +115,11 @@ export function WishForm({ onSubmit, onSent }: WishFormProps) {
         </Button>
 
         <p className="text-center text-[13px] text-ink-300" aria-live="polite">
-          {sent ? 'Sent ♡ your wish is at the top of the wall.' : 'Your wish appears on the wall right away.'}
+          {sent ? 'Sent ♡ Charene will read your wish — it stays private between you and her.' : 'Only Charene can read your wish.'}
         </p>
       </form>
 
-      <WishPreview draft={draft} imageUrl={previewUrl} />
+      <WishPreview draft={draft} mediaUrl={previewUrl} mediaType={previewMediaType} />
     </div>
   );
 }

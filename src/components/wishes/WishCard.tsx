@@ -1,9 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ReactionButton } from '@/components/wishes/ReactionButton';
-import { REACTIONS } from '@/lib/services/reactions';
-import type { BirthdayWish, ReactionEmoji } from '@/types';
+import { WishMedia } from '@/components/wishes/WishMedia';
+import type { BirthdayWish } from '@/types';
 import { cn } from '@/utils/cn';
 import { relativeTime, tintFor } from '@/utils/format';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
@@ -11,13 +10,11 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 interface WishCardProps {
   wish: BirthdayWish;
   index?: number;
-  activeReactions?: ReactionEmoji[];
-  onReact?: (emoji: ReactionEmoji) => void;
-  /** Preview mode drops the entrance animation and the reactions. */
   preview?: boolean;
+  onHide?: (id: string, hidden: boolean) => void;
 }
 
-export function WishCard({ wish, index = 0, activeReactions = [], onReact, preview }: WishCardProps) {
+export function WishCard({ wish, index = 0, preview, onHide }: WishCardProps) {
   const reduced = usePrefersReducedMotion();
 
   return (
@@ -29,6 +26,7 @@ export function WishCard({ wish, index = 0, activeReactions = [], onReact, previ
       className={cn(
         'grid min-w-0 gap-3 rounded-card border border-pink-200/70 p-5 shadow-soft',
         'transition-shadow duration-200 hover:shadow-lift',
+        wish.isHidden && !preview ? 'opacity-55' : '',
         tintFor(index),
       )}
     >
@@ -44,13 +42,11 @@ export function WishCard({ wish, index = 0, activeReactions = [], onReact, previ
         ) : null}
       </header>
 
-      {wish.imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={wish.imageUrl}
-          alt={'Photo from ' + wish.displayName}
-          loading="lazy"
-          className="aspect-[4/3] w-full rounded-field object-cover"
+      {wish.mediaUrl && wish.mediaType ? (
+        <WishMedia
+          url={wish.mediaUrl}
+          mediaType={wish.mediaType}
+          alt={(wish.mediaType === 'video' ? 'Video from ' : 'Photo from ') + wish.displayName}
         />
       ) : null}
 
@@ -58,19 +54,15 @@ export function WishCard({ wish, index = 0, activeReactions = [], onReact, previ
 
       <footer className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs lowercase text-ink-300">{preview ? 'just now' : relativeTime(wish.createdAt)}</span>
-        {preview ? null : (
-          <div className="flex flex-wrap gap-1.5">
-            {REACTIONS.map((emoji) => (
-              <ReactionButton
-                key={emoji}
-                emoji={emoji}
-                count={wish.reactions?.[emoji] ?? 0}
-                active={activeReactions.includes(emoji)}
-                onClick={() => onReact?.(emoji)}
-              />
-            ))}
-          </div>
-        )}
+        {onHide && !preview ? (
+          <button
+            type="button"
+            onClick={() => onHide(wish.id, !wish.isHidden)}
+            className="min-h-[44px] rounded-full px-3 text-sm text-ink-300 hover:bg-pink-100/70 hover:text-rose-600"
+          >
+            {wish.isHidden ? 'Unhide' : 'Hide'}
+          </button>
+        ) : null}
       </footer>
     </motion.article>
   );

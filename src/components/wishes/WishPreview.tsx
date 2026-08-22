@@ -1,29 +1,30 @@
 'use client';
 
 import { WishCard } from '@/components/wishes/WishCard';
-import type { BirthdayWish, WishDraft } from '@/types';
+import type { BirthdayWish, WishDraft, WishMediaType } from '@/types';
 
 interface WishPreviewProps {
   draft: WishDraft;
-  imageUrl: string | null;
+  mediaUrl: string | null;
+  mediaType: WishMediaType | null;
 }
 
-/** Shows the card exactly as it will land on the wall. */
-export function WishPreview({ draft, imageUrl }: WishPreviewProps) {
+/** Local preview only — the submitted wish is not shown on any public wall. */
+export function WishPreview({ draft, mediaUrl, mediaType }: WishPreviewProps) {
   const wish: BirthdayWish = {
     id: 'preview',
     displayName: draft.displayName.trim() || 'your name',
     handle: draft.handle?.trim() || undefined,
-    message: draft.message.trim() || 'เขียนคำอวยพรถึงชาลีน… your wish will look like this on the wall.',
+    message: draft.message.trim() || 'เขียนคำอวยพรถึงชาลีน… your wish will look like this for Charene.',
     sticker: draft.sticker,
-    imageUrl: imageUrl ?? undefined,
-    status: 'pending',
+    mediaUrl: mediaUrl ?? undefined,
+    mediaType: mediaType ?? undefined,
     createdAt: new Date().toISOString(),
   };
 
   return (
     <div className="grid gap-3 lg:sticky lg:top-24">
-      <span className="eyebrow text-center">Preview on the wall</span>
+      <span className="eyebrow text-center">Preview (only you see this)</span>
       <WishCard wish={wish} preview />
     </div>
   );

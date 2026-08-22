@@ -1,6 +1,4 @@
-export type WishStatus = 'pending' | 'approved' | 'rejected';
-
-export type ReactionEmoji = '♡' | '🌸' | '🎂' | '✨';
+export type WishMediaType = 'image' | 'video';
 
 export interface BirthdayWish {
   id: string;
@@ -8,10 +6,10 @@ export interface BirthdayWish {
   handle?: string;
   message: string;
   sticker?: string;
-  imageUrl?: string;
-  status: WishStatus;
+  mediaUrl?: string;
+  mediaType?: WishMediaType;
+  isHidden?: boolean;
   createdAt: string;
-  reactions?: Partial<Record<ReactionEmoji, number>>;
 }
 
 /** What the wish form hands to the service layer. */
@@ -20,8 +18,7 @@ export interface WishDraft {
   handle?: string;
   message: string;
   sticker?: string;
-  /** Local File chosen in the browser; uploaded by the uploads service. */
-  image?: File | null;
+  media?: File | null;
 }
 
 export interface MemoryPhoto {
@@ -37,4 +34,10 @@ export type LoadState = 'idle' | 'loading' | 'ready' | 'error';
 export interface ServiceResult<T> {
   data: T | null;
   error: string | null;
+}
+
+export interface UploadedWishMedia {
+  url: string;
+  mediaType: WishMediaType;
+  storagePath?: string;
 }
