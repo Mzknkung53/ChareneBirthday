@@ -9,7 +9,7 @@ import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 export function ChareneLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get('next') ?? '/charene/inbox';
+  const next = searchParams.get('next') ?? '/charene/reader';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

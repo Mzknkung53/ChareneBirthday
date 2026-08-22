@@ -18,6 +18,10 @@ interface BlurredWishBodyProps {
   demo?: boolean;
   /** Admin inbox — tap badge to persist blur, tap overlay to read. */
   onToggleHideFromLive?: (hidden: boolean) => void;
+  mediaClassName?: string;
+  messageClassName?: string;
+  /** Reader layout — skip the empty media slot when there is no attachment. */
+  hideEmptyMedia?: boolean;
 }
 
 export function BlurredWishBody({
@@ -28,6 +32,9 @@ export function BlurredWishBody({
   hideFromLive,
   demo,
   onToggleHideFromLive,
+  mediaClassName,
+  messageClassName,
+  hideEmptyMedia,
 }: BlurredWishBodyProps) {
   const [revealed, setRevealed] = useState(!hideFromLive);
   const hasMedia = Boolean(mediaUrl && mediaType);
@@ -77,26 +84,34 @@ export function BlurredWishBody({
         <span className={cn(badgeBase, badgeClass, 'self-start')}>{badgeLabel}</span>
       )}
 
-      <div className="relative flex min-h-0 flex-1 flex-col gap-3">
-        {hasMedia ? (
-          <WishMedia
-            url={mediaUrl!}
-            mediaType={mediaType!}
-            alt={(mediaType === 'video' ? 'Video from ' : 'Photo from ') + displayName}
-          />
-        ) : (
-          <WishMediaPlaceholder />
-        )}
-
+      <div className="relative flex min-h-0 flex-1 flex-col">
         <div
           className={cn(
-            'min-h-[3.5rem] transition-[filter,opacity] duration-300',
-            locked && 'pointer-events-none blur-md opacity-40 select-none',
+            'grid gap-3 transition-[filter,opacity] duration-300',
+            locked && 'pointer-events-none select-none blur-2xl opacity-25',
           )}
         >
-          <p className="whitespace-pre-line text-pretty font-ui text-[15px] font-normal leading-[1.75] text-ink-700">
-            {message}
-          </p>
+          {hasMedia ? (
+            <WishMedia
+              url={mediaUrl!}
+              mediaType={mediaType!}
+              alt={(mediaType === 'video' ? 'Video from ' : 'Photo from ') + displayName}
+              className={mediaClassName}
+            />
+          ) : hideEmptyMedia ? null : (
+            <WishMediaPlaceholder className={mediaClassName} />
+          )}
+
+          <div className="min-h-[3.5rem]">
+            <p
+              className={cn(
+                'whitespace-pre-line text-pretty font-ui text-[15px] font-normal leading-[1.75] text-ink-700',
+                messageClassName,
+              )}
+            >
+              {message}
+            </p>
+          </div>
         </div>
 
         {locked ? (
@@ -104,7 +119,7 @@ export function BlurredWishBody({
             type="button"
             onClick={() => setRevealed(true)}
             aria-label="Tap to read wish"
-            className="absolute inset-0 rounded-field bg-white/25 backdrop-blur-[2px] transition-colors hover:bg-white/35"
+            className="absolute inset-0 rounded-field bg-white/45 backdrop-blur-md transition-colors hover:bg-white/55"
           />
         ) : null}
       </div>

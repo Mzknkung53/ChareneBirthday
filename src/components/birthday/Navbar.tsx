@@ -34,7 +34,7 @@ export function Navbar() {
           Write a wish
         </Button>
         <Link
-          href="/charene/inbox"
+          href="/charene/reader"
           className="flex min-h-[44px] items-center gap-1.5 rounded-full border border-lavender-200/80 bg-white/60 px-3.5 text-sm text-[#8A73C8] no-underline transition-colors hover:bg-white/90 hover:text-[#6F5BB0]"
           aria-label="Admin inbox — sign in to read wishes"
         >

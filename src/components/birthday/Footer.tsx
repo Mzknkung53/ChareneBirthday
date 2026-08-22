@@ -35,7 +35,7 @@ export function Footer() {
       <p className="text-[13px] text-ink-300">A fan project · not an official page</p>
 
       <Link
-        href="/charene/inbox"
+        href="/charene/reader"
         className="text-[12px] text-ink-300/80 no-underline transition-colors hover:text-[#8A73C8]"
       >
         Admin inbox ✧

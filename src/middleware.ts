@@ -27,19 +27,19 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
-  if (path.startsWith('/charene/inbox') && !user) {
+  if ((path.startsWith('/charene/inbox') || path.startsWith('/charene/reader')) && !user) {
     const login = new URL('/charene', request.url);
     login.searchParams.set('next', path);
     return NextResponse.redirect(login);
   }
 
   if (path === '/charene' && user) {
-    return NextResponse.redirect(new URL('/charene/inbox', request.url));
+    return NextResponse.redirect(new URL('/charene/reader', request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ['/charene', '/charene/inbox/:path*'],
+  matcher: ['/charene', '/charene/inbox/:path*', '/charene/reader/:path*'],
 };
