@@ -19,6 +19,7 @@ export function WishPreview({ draft, mediaUrl, mediaType }: WishPreviewProps) {
     sticker: draft.sticker,
     mediaUrl: mediaUrl ?? undefined,
     mediaType: mediaType ?? undefined,
+    hideFromLive: draft.hideFromLive ?? false,
     createdAt: new Date().toISOString(),
   };
 

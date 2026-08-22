@@ -9,6 +9,7 @@ export interface WishRow {
   media_url: string | null;
   media_type: WishMediaType | null;
   is_hidden: boolean;
+  hide_from_live: boolean;
   created_at: string;
 }
 
@@ -22,6 +23,7 @@ export function mapWishRow(row: WishRow): BirthdayWish {
     mediaUrl: row.media_url ?? undefined,
     mediaType: row.media_type ?? undefined,
     isHidden: row.is_hidden,
+    hideFromLive: row.hide_from_live,
     createdAt: row.created_at,
   };
 }

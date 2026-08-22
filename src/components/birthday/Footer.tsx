@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { cn } from '@/utils/cn';
 import { SITE } from '@/data/site';
 
@@ -32,6 +33,13 @@ export function Footer() {
       </div>
 
       <p className="text-[13px] text-ink-300">A fan project · not an official page</p>
+
+      <Link
+        href="/charene/inbox"
+        className="text-[12px] text-ink-300/80 no-underline transition-colors hover:text-[#8A73C8]"
+      >
+        Admin inbox ✧
+      </Link>
     </footer>
   );
 }

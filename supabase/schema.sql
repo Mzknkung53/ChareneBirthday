@@ -24,6 +24,7 @@ create table public.wishes (
   media_url     text,
   media_type    text        check (media_type is null or media_type in ('image', 'video')),
   is_hidden     boolean     not null default false,
+  hide_from_live boolean    not null default false,
   created_at    timestamptz not null default now(),
 
   -- media_url and media_type must appear together

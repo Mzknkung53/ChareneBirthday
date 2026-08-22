@@ -1,14 +1,13 @@
 import Link from 'next/link';
-import { Suspense } from 'react';
-import { ChareneLogin } from '@/components/charene/ChareneLogin';
+import { ChareneInbox } from '@/components/charene/ChareneInbox';
 import { SITE } from '@/data/site';
 
 export const metadata = {
-  title: 'Sign in — Charene',
+  title: 'Inbox — Charene',
   robots: { index: false, follow: false },
 };
 
-export default function ChareneLoginPage() {
+export default function ChareneInboxPage() {
   return (
     <main className="min-h-screen pb-[env(safe-area-inset-bottom)]">
       <header className="sticky top-0 z-40 border-b border-white/70 bg-white/70 px-4 py-3 backdrop-blur-md sm:px-8 lg:px-12">
@@ -16,12 +15,10 @@ export default function ChareneLoginPage() {
           <Link href="/" className="font-display text-lg text-rose-600 no-underline hover:text-rose-500">
             ← {SITE.name}
           </Link>
-          <span className="text-xs uppercase tracking-[0.14em] text-ink-300">Admin sign in</span>
+          <span className="text-xs uppercase tracking-[0.14em] text-ink-300">Admin inbox</span>
         </div>
       </header>
-      <Suspense fallback={<div className="py-16 text-center text-sm text-ink-300">Loading…</div>}>
-        <ChareneLogin />
-      </Suspense>
+      <ChareneInbox />
     </main>
   );
 }

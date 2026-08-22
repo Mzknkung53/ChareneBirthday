@@ -9,6 +9,7 @@ export interface BirthdayWish {
   mediaUrl?: string;
   mediaType?: WishMediaType;
   isHidden?: boolean;
+  hideFromLive?: boolean;
   createdAt: string;
 }
 
@@ -19,6 +20,8 @@ export interface WishDraft {
   message: string;
   sticker?: string;
   media?: File | null;
+  /** When true, Charene can read in inbox but should not read on live stream. */
+  hideFromLive?: boolean;
 }
 
 export interface MemoryPhoto {

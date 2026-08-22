@@ -37,7 +37,7 @@ export async function submitWish(draft: WishDraft): Promise<ServiceResult<true>>
   try {
     await db`
       insert into public.wishes (
-        id, display_name, handle, message, sticker, media_url, media_type
+        id, display_name, handle, message, sticker, media_url, media_type, hide_from_live
       ) values (
         ${wishId},
         ${draft.displayName.trim()},
@@ -45,7 +45,8 @@ export async function submitWish(draft: WishDraft): Promise<ServiceResult<true>>
         ${draft.message.trim()},
         ${draft.sticker ?? null},
         ${mediaPath ?? null},
-        ${mediaType ?? null}
+        ${mediaType ?? null},
+        ${draft.hideFromLive ?? false}
       )
     `;
     return { data: true, error: null };
@@ -90,7 +91,7 @@ export async function listWishesForAdmin(): Promise<ServiceResult<BirthdayWish[]
 
   try {
     const rows = await db<WishRow[]>`
-      select id, display_name, handle, message, sticker, media_url, media_type, is_hidden, created_at
+      select id, display_name, handle, message, sticker, media_url, media_type, is_hidden, hide_from_live, created_at
       from public.wishes
       order by created_at desc
     `;

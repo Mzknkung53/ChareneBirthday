@@ -7,6 +7,7 @@ import { MessageField } from '@/components/ui/MessageField';
 import { MediaDrop } from '@/components/ui/MediaDrop';
 import { StickerPicker } from '@/components/ui/StickerPicker';
 import { TextField } from '@/components/ui/TextField';
+import { LivePrivacyPicker } from '@/components/wishes/LivePrivacyPicker';
 import { WishPreview } from '@/components/wishes/WishPreview';
 import type { WishDraft, WishMediaType } from '@/types';
 import { NAME_MAX, hasErrors, mediaKind, validateWish, type WishErrors } from '@/utils/validation';
@@ -15,7 +16,7 @@ interface WishFormProps {
   onSent?: () => void;
 }
 
-const EMPTY: WishDraft = { displayName: '', handle: '', message: '', sticker: '♡', media: null };
+const EMPTY: WishDraft = { displayName: '', handle: '', message: '', sticker: '♡', media: null, hideFromLive: false };
 
 export function WishForm({ onSent }: WishFormProps) {
   const [draft, setDraft] = useState<WishDraft>(EMPTY);
@@ -102,6 +103,8 @@ export function WishForm({ onSent }: WishFormProps) {
           />
           <StickerPicker value={draft.sticker} onSelect={(s) => set('sticker', s)} />
         </div>
+
+        <LivePrivacyPicker hideFromLive={draft.hideFromLive ?? false} onChange={(v) => set('hideFromLive', v)} />
 
         {failure ? (
           <p role="alert" className="flex items-start gap-2 rounded-field border border-rose-500/40 bg-pink-100/90 p-3 text-sm text-rose-700">
