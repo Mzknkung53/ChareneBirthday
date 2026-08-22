@@ -1,4 +1,6 @@
-import Link from 'next/link';
+'use client';
+
+import { NavPageLink } from '@/components/ui/NavPageLink';
 import { cn } from '@/utils/cn';
 import { SITE } from '@/data/site';
 
@@ -21,8 +23,8 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              'flex min-h-[44px] items-center gap-2 rounded-full border bg-white/75 px-5 text-sm no-underline',
-              'transition-transform duration-200 hover:-translate-y-0.5',
+              'inline-flex min-h-[44px] items-center gap-2 rounded-full border bg-white/75 px-5 text-sm no-underline',
+              'transition-[transform,box-shadow] duration-300 ease-glide hover:scale-105 hover:-translate-y-0.5 active:scale-[0.97]',
               tones[l.tone],
             )}
           >
@@ -34,12 +36,13 @@ export function Footer() {
 
       <p className="text-[13px] text-ink-300">A fan project · not an official page</p>
 
-      <Link
+      <NavPageLink
         href="/charene/reader"
-        className="text-[12px] text-ink-300/80 no-underline transition-colors hover:text-[#8A73C8]"
+        loadingLabel="Opening inbox…"
+        className="text-[12px] !text-ink-300/80 no-underline transition-colors hover:!text-[#8A73C8]"
       >
         Admin inbox ✧
-      </Link>
+      </NavPageLink>
     </footer>
   );
 }

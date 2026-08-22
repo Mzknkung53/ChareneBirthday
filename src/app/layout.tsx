@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Mali, Prompt, Playfair_Display } from 'next/font/google';
+import { SmoothScrollRoot } from '@/components/ui/SmoothScrollRoot';
 import './globals.css';
 
 const mali = Mali({
@@ -42,7 +43,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={[mali.variable, prompt.variable, playfair.variable].join(' ')}>
-      <body>{children}</body>
+      <body>
+        <SmoothScrollRoot />
+        {children}
+      </body>
     </html>
   );
 }

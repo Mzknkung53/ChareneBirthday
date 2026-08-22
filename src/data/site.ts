@@ -11,11 +11,13 @@ export const SITE = {
     { label: 'Discord', glyph: '✧', href: 'https://discord.com/invite/2aP4zJcQwJ', tone: 'lavender' as const },
   ],
   specialMessage: {
-    from: 'Nine',
-    title: 'To my favourite person ♡',
+    from: 'Your Charene9 ✿.',
+    title: 'To my favourite people ♡',
     paragraphs: [
-      'ขอบคุณที่อยู่ข้างกันมาตลอดปีนี้ — ทุกครั้งที่เธอเปิดไลฟ์ วันของฉันก็ดีขึ้นเสมอ วันนี้เป็นวันของเธอ ขอให้เป็นปีที่อ่อนโยนกับเธอที่สุด',
-      'Thank you for letting all of us be part of your year — for the late streams, the quiet chats, the little laugh you do when chat teases you. I hope this page feels like a room full of people saying your name kindly, all at once.',
+      'ขอบคุณทุกคนที่อยู่ข้าง ๆ กันมาตลอด คอยซัพพอร์ต คอยให้กำลังใจ และยังรักกันเสมอมา ขอบคุณที่ทำให้ทุกไลฟ์ ทุกช่วงเวลา และทุกความทรงจำมีความหมายมากกว่าที่เคย',
+      'ไม่ว่าจะเป็นวันที่สนุก วันที่เหนื่อย หรือวันที่ไม่ได้มีอะไรพิเศษ แค่รู้ว่ายังมีทุกคนอยู่ตรงนี้ด้วยกันก็ทำให้รู้สึกอบอุ่นมากแล้ว',
+      'Thank you for always being here — for every message, every laugh, every little moment we’ve shared together. Your support means more to me than I could ever put into words.',
+      'หวังว่าเราจะยังได้หัวเราะ เล่น พูดคุย และสร้างความทรงจำดี ๆ ด้วยกันอีกเยอะ ๆ เลยนะคะ อยู่ด้วยกันไปนาน ๆ นะ ♡',
     ],
   },
 };

@@ -51,8 +51,8 @@ export function HeroSection() {
             <Button href="#write" size="lg" iconRight="♡">
               Write a Birthday Wish
             </Button>
-            <Button href="#wall" size="lg" variant="secondary" iconRight="✨">
-              View Wishes
+            <Button href="#message" size="lg" variant="secondary" iconRight="✨">
+              Special message
             </Button>
           </div>
         </motion.div>

@@ -1,18 +1,23 @@
 'use client';
 
-import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import { InboxNavLink } from '@/components/ui/NavPageLink';
+import { SmoothScrollLink } from '@/components/ui/SmoothScrollLink';
 import { SITE } from '@/data/site';
 
 const links = [
   { href: '#write', label: 'Write' },
+  { href: '#message', label: 'Message' },
   { href: '#memories', label: 'Memories' },
 ];
 
 export function Navbar() {
   return (
     <nav className="sticky top-0 z-40 flex flex-wrap items-center justify-between gap-2 border-b border-white/70 bg-white/70 px-4 py-3 backdrop-blur-md sm:gap-6 sm:px-8 lg:px-12">
-      <a href="#top" className="flex items-center gap-2.5 font-display text-[clamp(17px,4vw,22px)] font-semibold text-rose-600 no-underline">
+      <SmoothScrollLink
+        href="#top"
+        className="flex items-center gap-2.5 font-display text-[clamp(17px,4vw,22px)] font-semibold !text-rose-600 no-underline hover:!text-rose-500"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/Charene-Profile.png"
@@ -22,25 +27,22 @@ export function Navbar() {
           className="h-8 w-8 rounded-full border-2 border-white/90 object-cover object-top shadow-soft"
         />
         {SITE.name} <span className="text-pink-400">♡</span>
-      </a>
+      </SmoothScrollLink>
 
       <div className="flex flex-wrap items-center gap-1 text-sm sm:gap-3">
         {links.map((l) => (
-          <a key={l.href} href={l.href} className="flex min-h-[44px] items-center px-2 text-ink-300 no-underline hover:text-rose-600">
+          <SmoothScrollLink
+            key={l.href}
+            href={l.href}
+            className="min-h-[44px] px-2 font-ui !text-ink-300 no-underline hover:!text-rose-600"
+          >
             {l.label}
-          </a>
+          </SmoothScrollLink>
         ))}
         <Button href="#write" size="sm" iconRight="♡">
           Write a wish
         </Button>
-        <Link
-          href="/charene/reader"
-          className="flex min-h-[44px] items-center gap-1.5 rounded-full border border-lavender-200/80 bg-white/60 px-3.5 text-sm text-[#8A73C8] no-underline transition-colors hover:bg-white/90 hover:text-[#6F5BB0]"
-          aria-label="Admin inbox — sign in to read wishes"
-        >
-          <span aria-hidden="true">✧</span>
-          <span className="hidden sm:inline">Inbox</span>
-        </Link>
+        <InboxNavLink />
       </div>
     </nav>
   );

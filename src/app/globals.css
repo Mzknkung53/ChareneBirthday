@@ -8,7 +8,8 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
+    scroll-padding-top: 5.75rem;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -82,6 +83,19 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+@keyframes c9-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes c9-overlay-card-in {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-overlay-in { animation: c9-overlay-in 280ms ease-out both; }
+.animate-overlay-card-in { animation: c9-overlay-card-in 340ms cubic-bezier(0.16, 0.84, 0.44, 1) both; }
 
 @keyframes c9-fade-up {
   from { opacity: 0; transform: translateY(14px); }

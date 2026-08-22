@@ -5,7 +5,7 @@ export function SpecialMessage() {
   const { from, title, paragraphs } = SITE.specialMessage;
 
   return (
-    <section className="mx-auto mt-14 max-w-[900px] px-4 sm:mt-20 sm:px-8 lg:mt-28 lg:px-12">
+    <section id="message" className="mx-auto mt-14 max-w-[900px] scroll-mt-24 px-4 sm:mt-20 sm:px-8 lg:mt-28 lg:px-12">
       <article className="grid justify-items-center gap-5 rounded-special border border-[rgba(223,185,100,.38)] bg-gradient-to-br from-white/90 via-pink-100/80 to-sky-100/85 p-7 text-center shadow-[0_18px_44px_rgba(180,126,158,.18),0_0_60px_rgba(223,185,100,.18)] backdrop-blur sm:p-12">
         <Badge tone="gold" icon="✨" uppercase>
           Special message
