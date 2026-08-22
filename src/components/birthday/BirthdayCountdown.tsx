@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useCountdown } from '@/hooks/useCountdown';
 import { pad2 } from '@/utils/format';
 
 interface BirthdayCountdownProps {
   targetISO: string;
+  celebrating?: boolean;
   onReached?: () => void;
 }
 
@@ -18,18 +19,26 @@ function Tile({ value, label }: { value: string; label: string }) {
   );
 }
 
-export function BirthdayCountdown({ targetISO, onReached }: BirthdayCountdownProps) {
+export function BirthdayCountdown({ targetISO, celebrating, onReached }: BirthdayCountdownProps) {
   const { days, hours, minutes, seconds, reached, ready } = useCountdown(targetISO);
+  const wasReached = useRef(false);
+  const showCelebration = celebrating || reached;
 
   useEffect(() => {
-    if (reached) onReached?.();
+    if (reached && !wasReached.current) {
+      onReached?.();
+    }
+    wasReached.current = reached;
   }, [reached, onReached]);
 
-  if (reached) {
+  if (showCelebration) {
     return (
-      <p className="font-display text-[clamp(24px,5vw,38px)] font-semibold text-rose-600">
-        Today is Charene&apos;s Birthday!
-      </p>
+      <div className="grid gap-2">
+        <p className="font-display text-[clamp(24px,5vw,38px)] font-semibold text-rose-600">
+          Today is Charene&apos;s Birthday! <span aria-hidden="true">🎂</span>
+        </p>
+        <p className="font-ui text-sm text-ink-300">Happy birthday — leave a wish below ♡</p>
+      </div>
     );
   }
 

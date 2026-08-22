@@ -131,6 +131,7 @@
 .animate-fade-up { animation: c9-fade-up 420ms cubic-bezier(0.16, 0.84, 0.44, 1) both; }
 .animate-float { animation: c9-float 9s ease-in-out infinite; }
 .animate-twinkle { animation: c9-twinkle 3.4s ease-in-out infinite; }
+.animate-glow-pulse { animation: c9-glow-pulse 2.4s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
