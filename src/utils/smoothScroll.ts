@@ -78,6 +78,10 @@ export function smoothScrollToId(hash: string, options?: { offset?: number; dura
   smoothScrollToElement(element, options);
 }
 
+export function smoothScrollToTop(duration?: number) {
+  animateScrollTo(0, duration ?? MIN_DURATION);
+}
+
 /** Same-page hash links — used by the global capture listener. */
 export function bindSmoothScrollAnchors(root: Document | HTMLElement = document) {
   const onClick = (event: Event) => {

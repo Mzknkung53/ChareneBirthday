@@ -6,6 +6,7 @@ import { SpecialMessage } from '@/components/birthday/SpecialMessage';
 import { WishSection } from '@/components/wishes/WishSection';
 import { MemoryGallery } from '@/components/gallery/MemoryGallery';
 import { Footer } from '@/components/birthday/Footer';
+import { ScrollToTopButton } from '@/components/ui/ScrollToTopButton';
 
 export default function HomePage() {
   return (
@@ -20,6 +21,7 @@ export default function HomePage() {
       <SpecialMessage />
       <MemoryGallery />
       <Footer />
+      <ScrollToTopButton />
       </main>
     </>
   );
