@@ -133,13 +133,69 @@
 .animate-twinkle { animation: c9-twinkle 3.4s ease-in-out infinite; }
 .animate-glow-pulse { animation: c9-glow-pulse 2.4s ease-in-out infinite; }
 
+.sakura-petal {
+  position: absolute;
+  top: -30px;
+  width: 12px;
+  height: 16px;
+  background: linear-gradient(180deg, #ffe8f1 0%, #ffc7da 55%, #f6a8c5 100%);
+  clip-path: polygon(
+    50% 100%,
+    12% 60%,
+    0% 30%,
+    18% 8%,
+    40% 0%,
+    50% 20%,
+    60% 0%,
+    82% 8%,
+    100% 30%,
+    88% 60%
+  );
+  opacity: 0;
+  filter: drop-shadow(0 1px 1px rgba(255, 150, 190, 0.15));
+  will-change: transform, opacity;
+}
+
+@keyframes sakura-fall-right {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(10vw, 110vh, 0) rotate(480deg);
+    opacity: 0;
+  }
+}
+
+@keyframes sakura-fall-left {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(-10vw, 110vh, 0) rotate(-480deg);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *,
-  *::before,
-  *::after {
+  body > :not([data-celebrate-layer]):not([data-sakura-layer]) *,
+  body > :not([data-celebrate-layer]):not([data-sakura-layer]) *::before,
+  body > :not([data-celebrate-layer]):not([data-sakura-layer]) *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+
+  [data-sakura-layer] .sakura-petal {
+    animation-duration: 14s !important;
+    animation-iteration-count: infinite !important;
   }
 }
