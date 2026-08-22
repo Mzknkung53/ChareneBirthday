@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { deleteWish, listWishesForAdmin, setWishHidden, setWishHideFromLive } from '@/app/actions/wishes';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { WishCard } from '@/components/wishes/WishCard';
 import { createClient } from '@/lib/supabase/client';
 import type { BirthdayWish, LoadState } from '@/types';
@@ -17,6 +18,8 @@ export function ChareneInbox() {
   const [state, setState] = useState<LoadState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
+  const [deleteTarget, setDeleteTarget] = useState<BirthdayWish | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setState('loading');
@@ -79,14 +82,21 @@ export function ChareneInbox() {
     if (res.error) void load();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteRequest = (id: string) => {
     const wish = wishes.find((w) => w.id === id);
-    if (!wish) return;
-    const ok = window.confirm(`Delete this wish from ${wish.displayName}? This cannot be undone.`);
-    if (!ok) return;
+    if (wish) setDeleteTarget(wish);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget || deleting) return;
+
+    const id = deleteTarget.id;
+    setDeleting(true);
     setWishes((list) => list.filter((w) => w.id !== id));
+    setDeleteTarget(null);
+
     const res = await deleteWish(id);
+    setDeleting(false);
     if (res.error) void load();
   };
 
@@ -98,7 +108,25 @@ export function ChareneInbox() {
   ];
 
   return (
-    <div className="mx-auto grid max-w-container gap-8 px-4 py-8 sm:px-8 lg:px-12">
+    <>
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete this wish?"
+        message={
+          deleteTarget
+            ? `Remove the message from ${deleteTarget.displayName}? This cannot be undone.`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        loading={deleting}
+        onConfirm={() => void handleDeleteConfirm()}
+        onCancel={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+      />
+
+      <div className="mx-auto grid max-w-container gap-8 px-4 py-8 sm:px-8 lg:px-12">
       <section className="glass rounded-feature p-6 shadow-card sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="grid gap-2">
@@ -182,11 +210,12 @@ export function ChareneInbox() {
               index={index}
               onHide={handleHide}
               onToggleHideFromLive={handleToggleHideFromLive}
-              onDelete={handleDelete}
+              onDelete={handleDeleteRequest}
             />
           ))}
         </div>
       ) : null}
-    </div>
+      </div>
+    </>
   );
 }
