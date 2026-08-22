@@ -93,7 +93,7 @@ export function WishForm({ onSent }: WishFormProps) {
           onChange={(e) => set('message', e.target.value)}
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
           <MediaDrop
             file={draft.media ?? null}
             previewUrl={previewUrl}

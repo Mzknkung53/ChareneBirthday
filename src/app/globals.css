@@ -24,11 +24,22 @@
     color: #4a3b47;
   }
 
-  /* Focus is a soft rose ring, never a browser default outline. */
+  /* Focus ring for buttons & links — not text fields (those use focus-within on their shell). */
   :focus-visible {
     outline: none;
+  }
+
+  a:focus-visible,
+  button:focus-visible {
     box-shadow: 0 0 0 4px rgba(242, 115, 159, 0.45);
     border-radius: 12px;
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 
   a {

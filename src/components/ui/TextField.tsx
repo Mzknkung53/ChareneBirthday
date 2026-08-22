@@ -20,17 +20,19 @@ export function TextField({ label, optional, prefix, error, hint, className, id,
       </label>
       <div
         className={cn(
-          'flex items-center gap-1 rounded-field border bg-white/90 px-4 transition-colors duration-200',
-          error ? 'border-rose-500' : 'border-pink-200 focus-within:border-rose-500',
+          'flex min-h-[52px] items-center gap-1 rounded-field border bg-white/90 px-4 transition-all duration-200',
+          'focus-within:border-rose-500 focus-within:ring-4 focus-within:ring-rose-500/25',
+          error ? 'border-rose-500 ring-4 ring-rose-500/25' : 'border-pink-200',
         )}
       >
-        {prefix ? <span className="text-ink-300">{prefix}</span> : null}
+        {prefix ? <span className="shrink-0 text-ink-300">{prefix}</span> : null}
         <input
           id={fieldId}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? fieldId + '-error' : undefined}
           className={cn(
-            'min-h-[48px] w-full bg-transparent text-[16px] text-ink-900 placeholder:text-ink-300/80 focus:outline-none',
+            'h-[52px] w-full min-w-0 bg-transparent text-[16px] text-ink-900 placeholder:text-ink-300/80',
+            'border-0 outline-none ring-0 focus:outline-none focus:ring-0',
             className,
           )}
           {...rest}

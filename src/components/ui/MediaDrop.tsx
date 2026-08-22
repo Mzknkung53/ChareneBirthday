@@ -90,8 +90,9 @@ export function MediaDrop({ file, previewUrl, mediaType, error, onPick }: MediaD
             pickFromList(e.dataTransfer.files);
           }}
           className={cn(
-            'grid min-h-[130px] place-items-center gap-1.5 rounded-field border-[1.5px] border-dashed p-4 text-center text-sm',
-            'transition-colors duration-200',
+            'grid min-h-[130px] w-full place-items-center gap-1.5 rounded-field border-[1.5px] border-dashed p-4 text-center text-sm',
+            'outline-none transition-all duration-200',
+            'focus-visible:border-rose-500 focus-visible:ring-4 focus-visible:ring-rose-500/25',
             over ? 'border-rose-500 bg-pink-100' : 'border-pink-300 bg-white/70 text-ink-300 hover:bg-pink-50',
           )}
         >

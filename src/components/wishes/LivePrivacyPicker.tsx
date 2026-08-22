@@ -36,7 +36,8 @@ export function LivePrivacyPicker({ hideFromLive, onChange }: LivePrivacyPickerP
               aria-pressed={active}
               onClick={() => onChange(opt.value)}
               className={cn(
-                'grid min-h-[88px] gap-1 rounded-field border p-3 text-left transition-colors duration-200',
+                'grid min-h-[88px] gap-1 rounded-field border p-3 text-left outline-none transition-all duration-200',
+                'focus-visible:ring-4 focus-visible:ring-rose-500/25',
                 active
                   ? 'border-rose-500 bg-pink-100/80 shadow-soft'
                   : 'border-pink-200 bg-white/70 hover:bg-pink-50',

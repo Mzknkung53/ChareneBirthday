@@ -16,7 +16,11 @@ export function StickerPicker({ value, onSelect, label = 'Pick a sticker' }: Sti
       <span className="text-sm font-medium text-ink-900">
         {label} <span className="text-xs font-light text-ink-300">optional</span>
       </span>
-      <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2">
+      <div
+        role="radiogroup"
+        aria-label={label}
+        className="flex min-h-[130px] flex-wrap content-start gap-2 rounded-field border border-pink-200 bg-white/70 p-3"
+      >
         {STICKERS.map((s) => {
           const on = value === s;
           return (

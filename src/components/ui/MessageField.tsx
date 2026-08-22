@@ -38,8 +38,9 @@ export function MessageField({
         aria-describedby={error ? 'wish-message-error' : undefined}
         className={cn(
           'min-h-[150px] w-full resize-y rounded-field border bg-white/90 p-4 text-[16px] leading-[1.85] text-ink-900',
-          'placeholder:text-ink-300/80 focus:outline-none',
-          error ? 'border-rose-500' : 'border-pink-200 focus:border-rose-500',
+          'placeholder:text-ink-300/80 outline-none transition-all duration-200',
+          'focus:border-rose-500 focus:ring-4 focus:ring-rose-500/25',
+          error ? 'border-rose-500 ring-4 ring-rose-500/25' : 'border-pink-200',
           className,
         )}
         {...rest}
