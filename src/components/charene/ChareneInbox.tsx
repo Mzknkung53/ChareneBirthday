@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { listWishesForAdmin, setWishHidden } from '@/app/actions/wishes';
+import { deleteWish, listWishesForAdmin, setWishHidden, setWishHideFromLive } from '@/app/actions/wishes';
 import { Button } from '@/components/ui/Button';
 import { WishCard } from '@/components/wishes/WishCard';
 import { createClient } from '@/lib/supabase/client';
@@ -26,8 +26,8 @@ export function ChareneInbox() {
         router.replace('/charene');
         return;
       }
-      if (res.error === 'You do not have access to this page.') {
-        setError('This account is not on the admin list. Ask the site owner to add your user ID to admin_users.');
+      if (res.error.startsWith('You do not have access')) {
+        setError(res.error);
         setState('error');
         return;
       }
@@ -73,6 +73,23 @@ export function ChareneInbox() {
     if (res.error) void load();
   };
 
+  const handleToggleHideFromLive = async (id: string, hideFromLive: boolean) => {
+    setWishes((list) => list.map((w) => (w.id === id ? { ...w, hideFromLive } : w)));
+    const res = await setWishHideFromLive(id, hideFromLive);
+    if (res.error) void load();
+  };
+
+  const handleDelete = async (id: string) => {
+    const wish = wishes.find((w) => w.id === id);
+    if (!wish) return;
+    const ok = window.confirm(`Delete this wish from ${wish.displayName}? This cannot be undone.`);
+    if (!ok) return;
+
+    setWishes((list) => list.filter((w) => w.id !== id));
+    const res = await deleteWish(id);
+    if (res.error) void load();
+  };
+
   const tabs: { id: Filter; label: string; count: number }[] = [
     { id: 'all', label: 'All', count: stats.total },
     { id: 'live-ok', label: 'OK for live', count: stats.liveOk },
@@ -106,8 +123,8 @@ export function ChareneInbox() {
               key={item.label}
               className={cn('rounded-field border border-pink-200/60 bg-gradient-to-br p-4', item.tone)}
             >
-              <p className="text-xs uppercase tracking-[0.12em] text-ink-300">{item.label}</p>
-              <p className="font-serif text-3xl text-ink-900">{item.value}</p>
+              <p className="font-ui text-xs font-medium uppercase tracking-[0.12em] text-ink-300">{item.label}</p>
+              <p className="font-ui text-3xl font-semibold tabular-nums text-ink-900">{item.value}</p>
             </div>
           ))}
         </div>
@@ -135,7 +152,7 @@ export function ChareneInbox() {
       </div>
 
       {state === 'loading' ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-52 animate-pulse rounded-card bg-pink-100/60" />
           ))}
@@ -157,9 +174,16 @@ export function ChareneInbox() {
       ) : null}
 
       {state === 'ready' && filtered.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((wish, index) => (
-            <WishCard key={wish.id} wish={wish} index={index} onHide={handleHide} />
+            <WishCard
+              key={wish.id}
+              wish={wish}
+              index={index}
+              onHide={handleHide}
+              onToggleHideFromLive={handleToggleHideFromLive}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       ) : null}

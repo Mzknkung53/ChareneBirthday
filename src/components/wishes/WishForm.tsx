@@ -53,7 +53,16 @@ export function WishForm({ onSent }: WishFormProps) {
 
     setSending(true);
     setFailure(null);
-    const res = await submitWish(draft);
+
+    const formData = new FormData();
+    formData.set('displayName', draft.displayName.trim());
+    formData.set('handle', draft.handle?.trim() ?? '');
+    formData.set('message', draft.message.trim());
+    formData.set('sticker', draft.sticker ?? '♡');
+    formData.set('hideFromLive', String(draft.hideFromLive ?? false));
+    if (draft.media) formData.set('media', draft.media);
+
+    const res = await submitWish(formData);
     setSending(false);
 
     if (res.error || !res.data) {

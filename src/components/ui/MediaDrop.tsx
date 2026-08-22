@@ -43,18 +43,20 @@ export function MediaDrop({ file, previewUrl, mediaType, error, onPick }: MediaD
 
       {previewUrl && file && mediaType ? (
         <figure className="relative m-0 overflow-hidden rounded-field border border-pink-200 bg-white">
-          {mediaType === 'video' ? (
-            <video
-              src={previewUrl}
-              controls
-              playsInline
-              preload="metadata"
-              className="block aspect-[4/3] w-full bg-ink-900/5 object-cover"
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={previewUrl} alt={'Preview of ' + file.name} className="block aspect-[4/3] w-full object-cover" />
-          )}
+          <div className="relative h-44 w-full overflow-hidden bg-ink-900/5">
+            {mediaType === 'video' ? (
+              <video
+                src={previewUrl}
+                controls
+                playsInline
+                preload="metadata"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={previewUrl} alt={'Preview of ' + file.name} className="absolute inset-0 h-full w-full object-cover" />
+            )}
+          </div>
           <div className="flex items-center justify-between gap-2 p-2">
             <span className="truncate text-xs text-ink-300">{file.name}</span>
             <div className="flex gap-1">

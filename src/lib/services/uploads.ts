@@ -55,3 +55,10 @@ export async function signedMediaUrl(storagePath: string): Promise<string | null
   const { data } = await admin.storage.from(BUCKET).createSignedUrl(storagePath, 60 * 60);
   return data?.signedUrl ?? null;
 }
+
+/** Remove uploaded media from storage (best-effort). */
+export async function deleteWishMedia(storagePath: string): Promise<void> {
+  const admin = createAdminClient();
+  if (!admin) return;
+  await admin.storage.from(BUCKET).remove([storagePath]);
+}

@@ -4,12 +4,25 @@ import { randomUUID } from 'crypto';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { mapWishRow, type WishRow } from '@/lib/db/wishes';
 import { createClient } from '@/lib/supabase/server';
-import { signedMediaUrl, uploadWishMedia } from '@/lib/services/uploads';
+import { signedMediaUrl, uploadWishMedia, deleteWishMedia } from '@/lib/services/uploads';
 import type { BirthdayWish, ServiceResult, WishDraft } from '@/types';
 import { hasErrors, validateWish } from '@/utils/validation';
 
+function draftFromFormData(formData: FormData): WishDraft {
+  const media = formData.get('media');
+  return {
+    displayName: String(formData.get('displayName') ?? ''),
+    handle: String(formData.get('handle') ?? '') || undefined,
+    message: String(formData.get('message') ?? ''),
+    sticker: String(formData.get('sticker') ?? '♡') || undefined,
+    hideFromLive: formData.get('hideFromLive') === 'true',
+    media: media instanceof File && media.size > 0 ? media : null,
+  };
+}
+
 /** Public: submit a wish — stored in DB, not shown to the sender or anyone else. */
-export async function submitWish(draft: WishDraft): Promise<ServiceResult<true>> {
+export async function submitWish(formData: FormData): Promise<ServiceResult<true>> {
+  const draft = draftFromFormData(formData);
   const errors = validateWish(draft);
   if (hasErrors(errors)) {
     const first = errors.displayName ?? errors.message ?? errors.media ?? 'Please check the form.';
@@ -59,6 +72,10 @@ async function requireAdmin() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return { error: 'Supabase auth is not configured.' as const, user: null };
   }
+
+  const db = getDb();
+  if (!db) return { error: 'Database is not configured.' as const, user: null };
+
   try {
     const supabase = createClient();
     const {
@@ -66,8 +83,15 @@ async function requireAdmin() {
     } = await supabase.auth.getUser();
     if (!user) return { error: 'Please sign in.' as const, user: null };
 
-    const { data: admin } = await supabase.from('admin_users').select('user_id').eq('user_id', user.id).maybeSingle();
-    if (!admin) return { error: 'You do not have access to this page.' as const, user: null };
+    const rows = await db<{ user_id: string }[]>`
+      select user_id from public.admin_users where user_id = ${user.id} limit 1
+    `;
+    if (!rows.length) {
+      return {
+        error: `You do not have access to this page. Signed in as ${user.email ?? user.id}. Add this user to admin_users in Supabase.`,
+        user: null,
+      };
+    }
 
     return { error: null, user };
   } catch {
@@ -102,6 +126,22 @@ export async function listWishesForAdmin(): Promise<ServiceResult<BirthdayWish[]
   }
 }
 
+/** Admin: blur or unblur a wish on any future live display. */
+export async function setWishHideFromLive(id: string, hideFromLive: boolean): Promise<ServiceResult<true>> {
+  const gate = await requireAdmin();
+  if (gate.error) return { data: null, error: gate.error };
+
+  const db = getDb();
+  if (!db) return { data: null, error: 'Database is not configured.' };
+
+  try {
+    await db`update public.wishes set hide_from_live = ${hideFromLive} where id = ${id}`;
+    return { data: true, error: null };
+  } catch {
+    return { data: null, error: 'Could not update that wish.' };
+  }
+}
+
 /** Admin: hide or unhide a wish. */
 export async function setWishHidden(id: string, hidden: boolean): Promise<ServiceResult<true>> {
   const gate = await requireAdmin();
@@ -115,6 +155,32 @@ export async function setWishHidden(id: string, hidden: boolean): Promise<Servic
     return { data: true, error: null };
   } catch {
     return { data: null, error: 'Could not update that wish.' };
+  }
+}
+
+/** Admin: permanently delete a wish and its media. */
+export async function deleteWish(id: string): Promise<ServiceResult<true>> {
+  const gate = await requireAdmin();
+  if (gate.error) return { data: null, error: gate.error };
+
+  const db = getDb();
+  if (!db) return { data: null, error: 'Database is not configured.' };
+
+  try {
+    const rows = await db<{ media_url: string | null }[]>`
+      select media_url from public.wishes where id = ${id} limit 1
+    `;
+    if (!rows.length) return { data: null, error: 'That wish was not found.' };
+
+    const mediaPath = rows[0].media_url;
+    if (mediaPath && !mediaPath.startsWith('http')) {
+      await deleteWishMedia(mediaPath);
+    }
+
+    await db`delete from public.wishes where id = ${id}`;
+    return { data: true, error: null };
+  } catch {
+    return { data: null, error: 'Could not delete that wish.' };
   }
 }
 

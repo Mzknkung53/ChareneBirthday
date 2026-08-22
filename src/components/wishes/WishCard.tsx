@@ -12,11 +12,13 @@ interface WishCardProps {
   index?: number;
   preview?: boolean;
   onHide?: (id: string, hidden: boolean) => void;
+  onToggleHideFromLive?: (id: string, hideFromLive: boolean) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function WishCard({ wish, index = 0, preview, onHide }: WishCardProps) {
+export function WishCard({ wish, index = 0, preview, onHide, onToggleHideFromLive, onDelete }: WishCardProps) {
   const reduced = usePrefersReducedMotion();
-  const blurred = Boolean(wish.hideFromLive);
+  const hideFromLive = Boolean(wish.hideFromLive);
 
   return (
     <motion.article
@@ -25,47 +27,27 @@ export function WishCard({ wish, index = 0, preview, onHide }: WishCardProps) {
       transition={{ duration: 0.42, delay: Math.min(index * 0.07, 0.5), ease: [0.16, 0.84, 0.44, 1] }}
       whileHover={reduced ? undefined : { y: -6 }}
       className={cn(
-        'grid min-w-0 gap-3 rounded-card border border-pink-200/70 p-5 shadow-soft',
+        'flex h-full min-w-0 flex-col gap-3 rounded-card border border-pink-200/70 p-5 shadow-soft',
         'transition-shadow duration-200 hover:shadow-lift',
         wish.isHidden && !preview ? 'opacity-55' : '',
         tintFor(index),
       )}
     >
-      <header className="grid gap-2">
-        <div className="flex items-start justify-between gap-3">
-          <div className="grid min-w-0 gap-0.5">
-            <span className="truncate font-display text-[17px] font-medium text-ink-900">{wish.displayName}</span>
-            {wish.handle ? <span className="truncate text-xs text-ink-300">@{wish.handle}</span> : null}
-          </div>
+      <header className="flex items-start justify-between gap-3">
+        <div className="grid min-w-0 gap-0.5">
+          <span className="truncate font-ui text-[15px] font-semibold text-ink-900">{wish.displayName}</span>
+          {wish.handle ? <span className="truncate font-ui text-xs text-ink-300">@{wish.handle}</span> : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {wish.isHidden && !preview ? (
+            <span className="rounded-full bg-pink-100 px-2.5 py-1 font-ui text-[11px] font-medium text-ink-300">Archived</span>
+          ) : null}
           {wish.sticker ? (
-            <span aria-hidden="true" className="text-xl">
+            <span aria-hidden="true" className="text-xl leading-none">
               {wish.sticker}
             </span>
           ) : null}
         </div>
-        {!preview ? (
-          <div className="flex flex-wrap gap-1.5">
-            <span
-              className={cn(
-                'rounded-full px-2.5 py-1 text-[11px] font-medium',
-                blurred ? 'bg-lavender-200/60 text-[#8A73C8]' : 'bg-sky-200/50 text-[#3C8FB0]',
-              )}
-            >
-              {blurred ? '🌙 Blurred — tap to read' : '✨ OK for live'}
-            </span>
-            {wish.isHidden ? (
-              <span className="rounded-full bg-pink-100 px-2.5 py-1 text-[11px] font-medium text-ink-300">Archived</span>
-            ) : null}
-          </div>
-        ) : blurred ? (
-          <span className="w-fit rounded-full bg-lavender-200/60 px-2.5 py-1 text-[11px] font-medium text-[#8A73C8]">
-            🌙 Blurred until tapped
-          </span>
-        ) : (
-          <span className="w-fit rounded-full bg-sky-200/50 px-2.5 py-1 text-[11px] font-medium text-[#3C8FB0]">
-            ✨ OK for live
-          </span>
-        )}
       </header>
 
       <BlurredWishBody
@@ -73,20 +55,34 @@ export function WishCard({ wish, index = 0, preview, onHide }: WishCardProps) {
         mediaUrl={wish.mediaUrl}
         mediaType={wish.mediaType}
         displayName={wish.displayName}
-        blurred={blurred}
+        hideFromLive={hideFromLive}
         demo={preview}
+        onToggleHideFromLive={
+          !preview && onToggleHideFromLive ? (hidden) => onToggleHideFromLive(wish.id, hidden) : undefined
+        }
       />
 
-      <footer className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xs lowercase text-ink-300">{preview ? 'just now' : relativeTime(wish.createdAt)}</span>
+      <footer className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-pink-100/80 pt-3">
+        <span className="font-ui text-xs lowercase text-ink-300">{preview ? 'just now' : relativeTime(wish.createdAt)}</span>
         {onHide && !preview ? (
-          <button
-            type="button"
-            onClick={() => onHide(wish.id, !wish.isHidden)}
-            className="min-h-[44px] rounded-full px-3 text-sm text-ink-300 hover:bg-pink-100/70 hover:text-rose-600"
-          >
-            {wish.isHidden ? 'Unarchive' : 'Archive'}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onHide(wish.id, !wish.isHidden)}
+              className="min-h-[40px] rounded-full px-3 font-ui text-sm text-ink-300 hover:bg-pink-100/70 hover:text-rose-600"
+            >
+              {wish.isHidden ? 'Unarchive' : 'Archive'}
+            </button>
+            {onDelete ? (
+              <button
+                type="button"
+                onClick={() => onDelete(wish.id)}
+                className="min-h-[40px] rounded-full px-3 font-ui text-sm text-ink-300 hover:bg-rose-50 hover:text-rose-700"
+              >
+                Delete
+              </button>
+            ) : null}
+          </div>
         ) : null}
       </footer>
     </motion.article>
