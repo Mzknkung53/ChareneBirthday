@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
@@ -14,6 +14,19 @@ import { cn } from '@/utils/cn';
 import { relativeTime, tintFor } from '@/utils/format';
 
 type Filter = 'all' | 'live-ok' | 'live-hidden' | 'archived';
+
+const FILTERS: Filter[] = ['all', 'live-ok', 'live-hidden', 'archived'];
+
+function parseFilter(value: string | null): Filter {
+  return FILTERS.includes(value as Filter) ? (value as Filter) : 'all';
+}
+
+function filterWishes(wishes: BirthdayWish[], filter: Filter) {
+  if (filter === 'live-ok') return wishes.filter((w) => !w.hideFromLive && !w.isHidden);
+  if (filter === 'live-hidden') return wishes.filter((w) => w.hideFromLive);
+  if (filter === 'archived') return wishes.filter((w) => w.isHidden);
+  return wishes;
+}
 
 function clampIndex(index: number, length: number) {
   if (length <= 0) return 0;
@@ -119,10 +132,11 @@ function WishReaderSlide({
 
 export function ChareneWishReader() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const reduced = usePrefersReducedMotion();
-  const [filter, setFilter] = useState<Filter>('all');
-  const [index, setIndex] = useState(0);
+  const [filter, setFilter] = useState<Filter>(() => parseFilter(searchParams.get('filter')));
+  const [activeId, setActiveId] = useState<string | null>(() => searchParams.get('id'));
   const [direction, setDirection] = useState(0);
 
   const {
@@ -139,34 +153,55 @@ export function ChareneWishReader() {
     handleDeleteConfirm,
   } = useAdminWishes();
 
-  const filtered = useMemo(() => {
-    if (filter === 'live-ok') return wishes.filter((w) => !w.hideFromLive && !w.isHidden);
-    if (filter === 'live-hidden') return wishes.filter((w) => w.hideFromLive);
-    if (filter === 'archived') return wishes.filter((w) => w.isHidden);
-    return wishes;
-  }, [filter, wishes]);
+  const filtered = useMemo(() => filterWishes(wishes, filter), [filter, wishes]);
 
-  const startId = searchParams.get('id');
-
-  useEffect(() => {
-    if (!startId || filtered.length === 0) return;
-    const found = filtered.findIndex((w) => w.id === startId);
-    if (found >= 0) setIndex(found);
-  }, [startId, filtered]);
+  const index = useMemo(() => {
+    if (filtered.length === 0) return 0;
+    if (!activeId) return 0;
+    const found = filtered.findIndex((w) => w.id === activeId);
+    return found >= 0 ? found : 0;
+  }, [activeId, filtered]);
 
   useEffect(() => {
-    setIndex((current) => clampIndex(current, filtered.length));
-  }, [filtered.length]);
+    if (filtered.length === 0) return;
+
+    if (!activeId || !filtered.some((w) => w.id === activeId)) {
+      setActiveId(filtered[0].id);
+    }
+  }, [activeId, filtered]);
+
+  useEffect(() => {
+    if (!activeId) return;
+
+    const params = new URLSearchParams();
+    params.set('id', activeId);
+    if (filter !== 'all') params.set('filter', filter);
+
+    const nextQuery = params.toString();
+    if (nextQuery === searchParams.toString()) return;
+
+    router.replace(`${pathname}?${nextQuery}`, { scroll: false });
+  }, [activeId, filter, pathname, router, searchParams]);
 
   const current = filtered[index];
+
+  const selectWish = useCallback(
+    (wishId: string, step: number) => {
+      setDirection(step);
+      setActiveId(wishId);
+    },
+    [],
+  );
 
   const go = useCallback(
     (step: number) => {
       if (filtered.length <= 1) return;
-      setDirection(step);
-      setIndex((current) => clampIndex(current + step, filtered.length));
+      const nextIndex = clampIndex(index + step, filtered.length);
+      const nextWish = filtered[nextIndex];
+      if (!nextWish) return;
+      selectWish(nextWish.id, step);
     },
-    [filtered.length],
+    [filtered, index, selectWish],
   );
 
   useEffect(() => {
@@ -189,12 +224,19 @@ export function ChareneWishReader() {
 
   const handleDeleteConfirmWithIndex = async () => {
     const removedId = deleteTarget?.id;
+    const wasActive = removedId === activeId;
+    const wasAtIndex = index;
     await handleDeleteConfirm();
-    if (!removedId) return;
-    setIndex((current) => {
-      const nextLength = filtered.filter((w) => w.id !== removedId).length;
-      return clampIndex(current, nextLength);
-    });
+    if (!removedId || !wasActive) return;
+
+    const remaining = filtered.filter((w) => w.id !== removedId);
+    if (remaining.length === 0) {
+      setActiveId(null);
+      return;
+    }
+
+    const nextIndex = clampIndex(wasAtIndex, remaining.length);
+    setActiveId(remaining[nextIndex]?.id ?? remaining[0].id);
   };
 
   const tabs: { id: Filter; label: string; count: number }[] = [
@@ -261,8 +303,11 @@ export function ChareneWishReader() {
               key={tab.id}
               type="button"
               onClick={() => {
-                setFilter(tab.id);
-                setIndex(0);
+                const nextFilter = tab.id;
+                setFilter(nextFilter);
+                const nextFiltered = filterWishes(wishes, nextFilter);
+                if (activeId && nextFiltered.some((w) => w.id === activeId)) return;
+                setActiveId(nextFiltered[0]?.id ?? null);
               }}
               className={cn(
                 'min-h-[44px] rounded-full border px-4 font-ui text-sm transition-colors',
@@ -305,8 +350,7 @@ export function ChareneWishReader() {
                     type="button"
                     aria-label={`Go to wish ${dotIndex + 1}`}
                     onClick={() => {
-                      setDirection(dotIndex > index ? 1 : -1);
-                      setIndex(dotIndex);
+                      selectWish(wish.id, dotIndex > index ? 1 : -1);
                     }}
                     className={cn(
                       'h-2 rounded-full transition-all',

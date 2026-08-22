@@ -9,6 +9,8 @@ interface BirthdayFireworksProps {
   duration?: number;
 }
 
+const FADE_OUT_MS = 5000;
+
 const BASE_OPTIONS = {
   autoresize: true,
   opacity: 0.5,
@@ -20,7 +22,6 @@ const BASE_OPTIONS = {
   intensity: 35,
   flickering: 45,
   lineStyle: 'round' as const,
-  hue: { min: 300, max: 360 },
   delay: { min: 15, max: 40 },
   rocketsPoint: { min: 15, max: 85 },
   lineWidth: {
@@ -31,6 +32,31 @@ const BASE_OPTIONS = {
   decay: { min: 0.01, max: 0.025 },
   mouse: { click: false, move: false, max: 1 },
 };
+
+/** Pastel + vivid hues that still fit the birthday site. */
+const HUE_PALETTES = [
+  { min: 330, max: 360 }, // rose / pink
+  { min: 300, max: 330 }, // hot pink / magenta
+  { min: 265, max: 295 }, // lavender / violet
+  { min: 215, max: 245 }, // sky blue
+  { min: 185, max: 210 }, // aqua / cyan
+  { min: 155, max: 175 }, // mint / seafoam
+  { min: 45, max: 65 }, // gold / amber
+  { min: 15, max: 35 }, // coral / orange
+  { min: 0, max: 12 }, // red
+  { min: 95, max: 115 }, // spring green
+] as const;
+
+function randomBurstHue() {
+  return HUE_PALETTES[Math.floor(Math.random() * HUE_PALETTES.length)]!;
+}
+
+function randomBurstOptions() {
+  return {
+    ...randomBurstSize(),
+    hue: randomBurstHue(),
+  };
+}
 
 /** Pick small / medium / large burst settings for the next rockets. */
 function randomBurstSize() {
@@ -69,16 +95,54 @@ export function BirthdayFireworks({ sessionKey, duration = BIRTHDAY_EFFECTS_MS }
 
     let disposed = false;
     let timer = 0;
+    let fadeTimer = 0;
     let raf = 0;
     let sizeTimer = 0;
+    let fadeRaf = 0;
 
     const cleanup = () => {
       window.clearTimeout(timer);
+      window.clearTimeout(fadeTimer);
       window.clearInterval(sizeTimer);
       cancelAnimationFrame(raf);
+      cancelAnimationFrame(fadeRaf);
       fireworksRef.current?.stop(true);
       fireworksRef.current = null;
       container.replaceChildren();
+      container.style.transition = '';
+      container.style.opacity = '';
+    };
+
+    const beginFadeOut = (fireworks: FireworksInstance) => {
+      window.clearInterval(sizeTimer);
+      sizeTimer = 0;
+
+      fireworks.updateOptions({
+        intensity: 0,
+        delay: { min: 99999, max: 99999 },
+      });
+
+      container.style.opacity = '1';
+      container.style.transition = `opacity ${FADE_OUT_MS}ms ease-out`;
+      requestAnimationFrame(() => {
+        container.style.opacity = '0';
+      });
+
+      const fadeStart = performance.now();
+      const baseOpacity = BASE_OPTIONS.opacity;
+
+      const rampCanvasFade = (now: number) => {
+        const progress = Math.min(1, (now - fadeStart) / FADE_OUT_MS);
+        fireworks.updateOptions({
+          opacity: baseOpacity + progress * 0.42,
+        });
+
+        if (progress < 1) {
+          fadeRaf = requestAnimationFrame(rampCanvasFade);
+        }
+      };
+
+      fadeRaf = requestAnimationFrame(rampCanvasFade);
     };
 
     raf = requestAnimationFrame(() => {
@@ -90,7 +154,7 @@ export function BirthdayFireworks({ sessionKey, duration = BIRTHDAY_EFFECTS_MS }
 
         const fireworks = new Fireworks(container, {
           ...BASE_OPTIONS,
-          ...randomBurstSize(),
+          ...randomBurstOptions(),
           boundaries: {
             x: 50,
             y: 50,
@@ -101,10 +165,15 @@ export function BirthdayFireworks({ sessionKey, duration = BIRTHDAY_EFFECTS_MS }
 
         fireworksRef.current = fireworks;
         fireworks.start();
+        container.style.opacity = '1';
 
         sizeTimer = window.setInterval(() => {
-          fireworks.updateOptions(randomBurstSize());
+          fireworks.updateOptions(randomBurstOptions());
         }, 450);
+
+        fadeTimer = window.setTimeout(() => {
+          beginFadeOut(fireworks);
+        }, Math.max(0, duration - FADE_OUT_MS));
 
         timer = window.setTimeout(() => {
           void fireworks.waitStop(true);
@@ -123,7 +192,7 @@ export function BirthdayFireworks({ sessionKey, duration = BIRTHDAY_EFFECTS_MS }
     <div
       ref={containerRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[9999]"
+      className="pointer-events-none fixed inset-0 z-[9999] opacity-100"
       style={{ width: '100vw', height: '100vh' }}
     />
   );

@@ -9,6 +9,7 @@ import { StickerPicker } from '@/components/ui/StickerPicker';
 import { TextField } from '@/components/ui/TextField';
 import { LivePrivacyPicker } from '@/components/wishes/LivePrivacyPicker';
 import { WishPreview } from '@/components/wishes/WishPreview';
+import { WishSentSuccess } from '@/components/wishes/WishSentSuccess';
 import type { WishDraft, WishMediaType } from '@/types';
 import { NAME_MAX, hasErrors, mediaKind, validateWish, type WishErrors } from '@/utils/validation';
 
@@ -25,6 +26,7 @@ export function WishForm({ onSent }: WishFormProps) {
   const [previewMediaType, setPreviewMediaType] = useState<WishMediaType | null>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [successVisible, setSuccessVisible] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,6 +45,7 @@ export function WishForm({ onSent }: WishFormProps) {
     setDraft((d) => ({ ...d, [key]: value }));
     setErrors((e) => ({ ...e, [key]: undefined }));
     setSent(false);
+    setSuccessVisible(false);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -71,11 +74,15 @@ export function WishForm({ onSent }: WishFormProps) {
     }
     setDraft(EMPTY);
     setSent(true);
+    setSuccessVisible(true);
     onSent?.();
   };
 
   return (
-    <div className="mx-auto grid max-w-[1000px] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)] lg:gap-8">
+    <>
+      <WishSentSuccess open={successVisible} onDismiss={() => setSuccessVisible(false)} />
+
+      <div className="mx-auto grid max-w-[1000px] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)] lg:gap-8">
       <form onSubmit={handleSubmit} noValidate className="glass grid min-w-0 gap-4 rounded-feature p-5 shadow-card sm:p-8">
         <TextField
           label="Display name"
@@ -132,6 +139,7 @@ export function WishForm({ onSent }: WishFormProps) {
       </form>
 
       <WishPreview draft={draft} mediaUrl={previewUrl} mediaType={previewMediaType} />
-    </div>
+      </div>
+    </>
   );
 }
