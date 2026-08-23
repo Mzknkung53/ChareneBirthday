@@ -15,7 +15,7 @@ export function WishPreview({ draft, mediaUrl, mediaType }: WishPreviewProps) {
     id: 'preview',
     displayName: draft.displayName.trim() || 'your name',
     handle: draft.handle?.trim() || undefined,
-    message: draft.message.trim() || 'เขียนคำอวยพรถึงชาลีน… your wish will look like this for Charene.',
+    message: draft.message.trim() || 'เขียนคำอวยพรถึงชารีน… your wish will look like this for Charene.',
     sticker: draft.sticker,
     mediaUrl: mediaUrl ?? undefined,
     mediaType: mediaType ?? undefined,

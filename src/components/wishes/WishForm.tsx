@@ -105,7 +105,7 @@ export function WishForm({ onSent }: WishFormProps) {
         <MessageField
           value={draft.message}
           error={errors.message}
-          placeholder="เขียนคำอวยพรถึงชาลีน… / write your wish here"
+          placeholder="เขียนคำอวยพรถึงชารีน… / write your wish here"
           onChange={(e) => set('message', e.target.value)}
         />
 
