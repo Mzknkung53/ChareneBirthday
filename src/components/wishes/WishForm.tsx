@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { submitWish } from '@/app/actions/wishes';
+import { uploadWishMediaDirect } from '@/lib/services/clientUpload';
 import { Button } from '@/components/ui/Button';
 import { MessageField } from '@/components/ui/MessageField';
 import { MediaDrop } from '@/components/ui/MediaDrop';
@@ -25,6 +26,7 @@ export function WishForm({ onSent }: WishFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewMediaType, setPreviewMediaType] = useState<WishMediaType | null>(null);
   const [sending, setSending] = useState(false);
+  const [sendingLabel, setSendingLabel] = useState('Sending…');
   const [sent, setSent] = useState(false);
   const [successVisible, setSuccessVisible] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
@@ -57,16 +59,39 @@ export function WishForm({ onSent }: WishFormProps) {
     setSending(true);
     setFailure(null);
 
+    const wishId = crypto.randomUUID();
+    let mediaPath = '';
+    let mediaType: WishMediaType | '' = '';
+
+    if (draft.media) {
+      setSendingLabel('Uploading…');
+      const upload = await uploadWishMediaDirect(draft.media, wishId);
+      if (upload.error || !upload.data) {
+        setSending(false);
+        setSendingLabel('Sending…');
+        setFailure(upload.error ?? 'That file could not upload — try a smaller one.');
+        return;
+      }
+      mediaPath = upload.data.storagePath;
+      mediaType = upload.data.mediaType;
+    }
+
+    setSendingLabel('Sending…');
     const formData = new FormData();
+    formData.set('wishId', wishId);
     formData.set('displayName', draft.displayName.trim());
     formData.set('handle', draft.handle?.trim() ?? '');
     formData.set('message', draft.message.trim());
     formData.set('sticker', draft.sticker ?? '♡');
     formData.set('hideFromLive', String(draft.hideFromLive ?? false));
-    if (draft.media) formData.set('media', draft.media);
+    if (mediaPath) {
+      formData.set('mediaPath', mediaPath);
+      formData.set('mediaType', mediaType);
+    }
 
     const res = await submitWish(formData);
     setSending(false);
+    setSendingLabel('Sending…');
 
     if (res.error || !res.data) {
       setFailure(res.error ?? 'Your wish did not send. Try once more in a moment.');
@@ -130,7 +155,7 @@ export function WishForm({ onSent }: WishFormProps) {
         ) : null}
 
         <Button type="submit" size="lg" fullWidth iconRight="♡" loading={sending} disabled={sending}>
-          {sending ? 'Sending…' : 'Send my wish'}
+          {sending ? sendingLabel : 'Send my wish'}
         </Button>
 
         <p className="text-center text-[13px] text-ink-300" aria-live="polite">

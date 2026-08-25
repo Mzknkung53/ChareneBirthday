@@ -1,50 +1,80 @@
 'use server';
 
-import { randomUUID } from 'crypto';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { mapWishRow, type WishRow } from '@/lib/db/wishes';
 import { createClient } from '@/lib/supabase/server';
-import { signedMediaUrls, uploadWishMedia, deleteWishMedia } from '@/lib/services/uploads';
-import type { BirthdayWish, ServiceResult, WishDraft } from '@/types';
+import { deleteWishMedia, signedMediaUrls, wishMediaExists } from '@/lib/services/uploads';
+import type { BirthdayWish, ServiceResult, WishDraft, WishMediaType } from '@/types';
 import { hasErrors, validateWish } from '@/utils/validation';
+import { isValidWishMediaPath, isWishId, mediaTypeFromPath } from '@/utils/wishMedia';
 
 function draftFromFormData(formData: FormData): WishDraft {
-  const media = formData.get('media');
   return {
     displayName: String(formData.get('displayName') ?? ''),
     handle: String(formData.get('handle') ?? '') || undefined,
     message: String(formData.get('message') ?? ''),
     sticker: String(formData.get('sticker') ?? '♡') || undefined,
     hideFromLive: formData.get('hideFromLive') === 'true',
-    media: media instanceof File && media.size > 0 ? media : null,
+    media: null,
   };
 }
 
-/** Public: submit a wish — stored in DB, not shown to the sender or anyone else. */
+async function cleanupOrphanMedia(mediaPath: string | null, wishId: string) {
+  if (!mediaPath || !isValidWishMediaPath(mediaPath, wishId)) return;
+  await deleteWishMedia(mediaPath);
+}
+
+/** Public: submit a wish — media already uploaded from the browser when present. */
 export async function submitWish(formData: FormData): Promise<ServiceResult<true>> {
   const draft = draftFromFormData(formData);
+  const wishId = String(formData.get('wishId') ?? '');
+  const mediaPathRaw = String(formData.get('mediaPath') ?? '').trim();
+  const mediaPath = mediaPathRaw || null;
+  const mediaTypeClaim = String(formData.get('mediaType') ?? '').trim() as WishMediaType | '';
+
   const errors = validateWish(draft);
   if (hasErrors(errors)) {
     const first = errors.displayName ?? errors.message ?? errors.media ?? 'Please check the form.';
+    await cleanupOrphanMedia(mediaPath, wishId);
     return { data: null, error: first };
   }
 
+  if (!isWishId(wishId)) {
+    await cleanupOrphanMedia(mediaPath, wishId);
+    return { data: null, error: 'Your wish did not send. Try once more in a moment.' };
+  }
+
+  let mediaType: WishRow['media_type'] = null;
+
+  if (mediaPath) {
+    if (!isValidWishMediaPath(mediaPath, wishId)) {
+      await cleanupOrphanMedia(mediaPath, wishId);
+      return { data: null, error: 'That file could not upload — try a smaller one.' };
+    }
+
+    const inferred = mediaTypeFromPath(mediaPath);
+    if (!inferred || (mediaTypeClaim && mediaTypeClaim !== inferred)) {
+      await cleanupOrphanMedia(mediaPath, wishId);
+      return { data: null, error: 'That file type will not open here — JPG, PNG, WebP, MP4, WebM or MOV works.' };
+    }
+
+    const exists = await wishMediaExists(mediaPath);
+    if (!exists) {
+      return { data: null, error: 'That file could not upload — try a smaller one.' };
+    }
+
+    mediaType = inferred;
+  }
+
   if (!isDatabaseConfigured) {
+    await cleanupOrphanMedia(mediaPath, wishId);
     return { data: null, error: 'Database is not configured yet — add DATABASE_URL to .env.local.' };
   }
 
   const db = getDb();
-  if (!db) return { data: null, error: 'Could not connect to the database.' };
-
-  const wishId = randomUUID();
-  let mediaPath: string | null = null;
-  let mediaType: WishRow['media_type'] = null;
-
-  if (draft.media) {
-    const upload = await uploadWishMedia(draft.media, wishId);
-    if (upload.error) return { data: null, error: upload.error };
-    mediaPath = upload.data?.storagePath ?? null;
-    mediaType = upload.data?.mediaType ?? null;
+  if (!db) {
+    await cleanupOrphanMedia(mediaPath, wishId);
+    return { data: null, error: 'Could not connect to the database.' };
   }
 
   try {
@@ -57,13 +87,14 @@ export async function submitWish(formData: FormData): Promise<ServiceResult<true
         ${draft.handle?.trim() || null},
         ${draft.message.trim()},
         ${draft.sticker ?? null},
-        ${mediaPath ?? null},
-        ${mediaType ?? null},
+        ${mediaPath},
+        ${mediaType},
         ${draft.hideFromLive ?? false}
       )
     `;
     return { data: true, error: null };
   } catch {
+    await cleanupOrphanMedia(mediaPath, wishId);
     return { data: null, error: 'Your wish did not send. Try once more in a moment.' };
   }
 }
