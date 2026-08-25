@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { mapWishRow, type WishRow } from '@/lib/db/wishes';
 import { createClient } from '@/lib/supabase/server';
-import { signedMediaUrl, uploadWishMedia, deleteWishMedia } from '@/lib/services/uploads';
+import { signedMediaUrls, uploadWishMedia, deleteWishMedia } from '@/lib/services/uploads';
 import type { BirthdayWish, ServiceResult, WishDraft } from '@/types';
 import { hasErrors, validateWish } from '@/utils/validation';
 
@@ -99,10 +99,19 @@ async function requireAdmin() {
   }
 }
 
-async function withSignedMedia(wish: BirthdayWish): Promise<BirthdayWish> {
-  if (!wish.mediaUrl || wish.mediaUrl.startsWith('http')) return wish;
-  const url = await signedMediaUrl(wish.mediaUrl);
-  return url ? { ...wish, mediaUrl: url } : wish;
+async function withSignedMedia(wishes: BirthdayWish[]): Promise<BirthdayWish[]> {
+  const paths = wishes
+    .map((wish) => wish.mediaUrl)
+    .filter((path): path is string => Boolean(path) && !path.startsWith('http'));
+
+  if (!paths.length) return wishes;
+
+  const signed = await signedMediaUrls(paths);
+  return wishes.map((wish) => {
+    if (!wish.mediaUrl || wish.mediaUrl.startsWith('http')) return wish;
+    const url = signed.get(wish.mediaUrl);
+    return url ? { ...wish, mediaUrl: url } : wish;
+  });
 }
 
 /** Admin: list all wishes (newest first). */
@@ -119,7 +128,7 @@ export async function listWishesForAdmin(): Promise<ServiceResult<BirthdayWish[]
       from public.wishes
       order by created_at desc
     `;
-    const wishes = await Promise.all(rows.map((row) => withSignedMedia(mapWishRow(row))));
+    const wishes = await withSignedMedia(rows.map(mapWishRow));
     return { data: wishes, error: null };
   } catch {
     return { data: null, error: 'Could not load wishes.' };

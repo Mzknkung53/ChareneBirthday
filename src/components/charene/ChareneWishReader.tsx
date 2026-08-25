@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Button } from '@/components/ui/Button';
 import { BlurredWishBody } from '@/components/wishes/BlurredWishBody';
 import { useAdminWishes } from '@/hooks/useAdminWishes';
+import { clearAdminWishesCache } from '@/lib/adminWishesCache';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { createClient } from '@/lib/supabase/client';
 import type { BirthdayWish } from '@/types';
@@ -216,6 +217,7 @@ export function ChareneWishReader() {
   }, [deleteTarget, go]);
 
   const handleSignOut = async () => {
+    clearAdminWishesCache();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.replace('/charene');

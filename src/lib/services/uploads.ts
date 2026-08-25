@@ -38,8 +38,8 @@ export async function uploadWishMedia(file: File, wishId: string): Promise<Servi
   }
 
   const storagePath = `${wishId}/${Date.now()}.${extFor(file)}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const { error } = await admin.storage.from(BUCKET).upload(storagePath, buffer, {
+  // Pass the File/Blob through — avoid an extra Buffer copy of large uploads.
+  const { error } = await admin.storage.from(BUCKET).upload(storagePath, file, {
     contentType: file.type,
     upsert: false,
   });
@@ -50,10 +50,25 @@ export async function uploadWishMedia(file: File, wishId: string): Promise<Servi
 
 /** Turn a stored storage path into a temporary signed URL for admin viewing. */
 export async function signedMediaUrl(storagePath: string): Promise<string | null> {
+  const map = await signedMediaUrls([storagePath]);
+  return map.get(storagePath) ?? null;
+}
+
+/** Sign many storage paths in one Storage API call. */
+export async function signedMediaUrls(storagePaths: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const unique = [...new Set(storagePaths.filter(Boolean))];
+  if (!unique.length) return map;
+
   const admin = createAdminClient();
-  if (!admin) return null;
-  const { data } = await admin.storage.from(BUCKET).createSignedUrl(storagePath, 60 * 60);
-  return data?.signedUrl ?? null;
+  if (!admin) return map;
+
+  const { data } = await admin.storage.from(BUCKET).createSignedUrls(unique, 60 * 60);
+  for (const item of data ?? []) {
+    const url = item.signedUrl ?? item.signedURL;
+    if (item.path && url) map.set(item.path, url);
+  }
+  return map;
 }
 
 /** Remove uploaded media from storage (best-effort). */
