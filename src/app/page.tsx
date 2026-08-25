@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { Navbar } from '@/components/birthday/Navbar';
 import { HeroSection } from '@/components/birthday/HeroSection';
 import { SakuraPetals } from '@/components/birthday/SakuraPetals';
@@ -14,9 +13,7 @@ export default function HomePage() {
       <SakuraPetals />
       <main className="min-h-screen pb-[env(safe-area-inset-bottom)]">
       <Navbar />
-      <Suspense fallback={null}>
-        <HeroSection />
-      </Suspense>
+      <HeroSection />
       <WishSection />
       <SpecialMessage />
       <MemoryGallery />

@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -15,7 +14,6 @@ import { BIRTHDAY_EFFECTS_MS } from '@/utils/birthdayEffects';
 
 export function HeroSection() {
   const reduced = usePrefersReducedMotion();
-  const searchParams = useSearchParams();
   const celebratedRef = useRef(false);
   const effectsTimerRef = useRef<number | null>(null);
 
@@ -58,13 +56,7 @@ export function HeroSection() {
     }
   }, [celebrate]);
 
-  useEffect(() => {
-    if (searchParams.get('preview') !== 'birthday') return;
-    const id = window.setTimeout(celebrate, 500);
-    return () => window.clearTimeout(id);
-  }, [searchParams, celebrate]);
-
-  const previewCelebration = () => {
+  const replayFireworks = () => {
     setCelebrating(true);
     runEffects();
   };
@@ -146,23 +138,15 @@ export function HeroSection() {
         >
           <span className="eyebrow">{celebrating ? 'Her day is here 🎆' : 'Counting down to her day'}</span>
           <BirthdayCountdown targetISO={SITE.birthdayISO} celebrating={celebrating} onReached={celebrate} />
-          {!celebrating ? (
+          {celebrating ? (
             <button
               type="button"
-              onClick={previewCelebration}
-              className="font-ui text-xs text-ink-300 underline-offset-2 transition-colors hover:text-rose-600 hover:underline"
-            >
-              Preview birthday celebration 🎆
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={previewCelebration}
+              onClick={replayFireworks}
               className="font-ui text-xs text-ink-300 underline-offset-2 transition-colors hover:text-rose-600 hover:underline"
             >
               Replay fireworks 🎆
             </button>
-          )}
+          ) : null}
         </div>
       </section>
     </>

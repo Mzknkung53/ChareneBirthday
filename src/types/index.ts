@@ -30,6 +30,8 @@ export interface MemoryPhoto {
   caption: string;
   rotate: number;
   alt: string;
+  /** CSS object-position when the square crop should favor a side. */
+  objectPosition?: string;
 }
 
 export type LoadState = 'idle' | 'loading' | 'ready' | 'error';

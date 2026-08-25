@@ -17,7 +17,13 @@ export function MemoryCard({ photo }: { photo: MemoryPhoto }) {
     >
       {photo.src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={photo.src} alt={photo.alt} loading="lazy" className="block aspect-square w-full rounded-[6px] object-cover" />
+        <img
+          src={photo.src}
+          alt={photo.alt}
+          loading="lazy"
+          className="block aspect-square w-full rounded-[6px] object-cover"
+          style={photo.objectPosition ? { objectPosition: photo.objectPosition } : undefined}
+        />
       ) : (
         <div className="grad-dream grid aspect-square w-full place-items-center rounded-[6px] px-3 text-center text-xs text-rose-600">
           {photo.alt}
