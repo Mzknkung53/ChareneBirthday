@@ -102,7 +102,7 @@ async function requireAdmin() {
 async function withSignedMedia(wishes: BirthdayWish[]): Promise<BirthdayWish[]> {
   const paths = wishes
     .map((wish) => wish.mediaUrl)
-    .filter((path): path is string => Boolean(path) && !path.startsWith('http'));
+    .filter((path): path is string => typeof path === 'string' && !path.startsWith('http'));
 
   if (!paths.length) return wishes;
 
