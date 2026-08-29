@@ -20,19 +20,29 @@ function getClientIp(): string {
   return list.get('x-real-ip') ?? 'unknown';
 }
 
+/** Best-effort: if wish_rate_limits isn't migrated in yet, fail open rather than block submissions. */
 async function isRateLimited(db: NonNullable<ReturnType<typeof getDb>>, ip: string): Promise<boolean> {
   if (ip === 'unknown') return false;
-  const rows = await db<{ count: string }[]>`
-    select count(*)::text as count
-    from public.wish_rate_limits
-    where ip = ${ip} and created_at > now() - make_interval(mins => ${RATE_LIMIT_WINDOW_MINUTES})
-  `;
-  return Number(rows[0]?.count ?? 0) >= RATE_LIMIT_MAX_PER_WINDOW;
+  try {
+    const rows = await db<{ count: string }[]>`
+      select count(*)::text as count
+      from public.wish_rate_limits
+      where ip = ${ip} and created_at > now() - make_interval(mins => ${RATE_LIMIT_WINDOW_MINUTES})
+    `;
+    return Number(rows[0]?.count ?? 0) >= RATE_LIMIT_MAX_PER_WINDOW;
+  } catch {
+    return false;
+  }
 }
 
+/** Best-effort: never let logging failure turn an already-saved wish into a reported failure. */
 async function logSubmission(db: NonNullable<ReturnType<typeof getDb>>, ip: string): Promise<void> {
   if (ip === 'unknown') return;
-  await db`insert into public.wish_rate_limits (ip) values (${ip})`;
+  try {
+    await db`insert into public.wish_rate_limits (ip) values (${ip})`;
+  } catch {
+    // ignore — the wish itself already saved successfully
+  }
 }
 
 function draftFromFormData(formData: FormData): WishDraft {
