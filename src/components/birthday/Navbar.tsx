@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { InboxNavLink } from '@/components/ui/NavPageLink';
 import { SmoothScrollLink } from '@/components/ui/SmoothScrollLink';
@@ -17,8 +18,7 @@ function NavLogo() {
       href="#top"
       className="flex shrink-0 items-center gap-2.5 font-display text-[clamp(17px,4vw,22px)] font-semibold !text-rose-600 no-underline hover:!text-rose-500"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src="/images/Charene-Profile.png"
         alt=""
         width={32}

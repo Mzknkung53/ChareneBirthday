@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -119,11 +120,13 @@ export function HeroSection() {
                 className="absolute -inset-[4%] animate-glow-pulse rounded-full bg-[radial-gradient(closest-side,rgba(242,115,159,.28),rgba(242,115,159,0))]"
               />
             ) : null}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src="/images/Charene-Profile.png"
               alt="Charene9's profile artwork — a pastel portrait among falling sakura"
-              className="relative h-full w-full rounded-full border-[7px] border-white/90 object-cover object-top shadow-lift"
+              fill
+              priority
+              sizes="(min-width: 1024px) 360px, 78vw"
+              className="rounded-full border-[7px] border-white/90 object-cover object-top shadow-lift"
             />
             <span className="absolute -right-1 bottom-[6%] rounded-full border border-pink-200 bg-white/90 px-4 py-2 font-display text-sm text-rose-600 shadow-soft backdrop-blur">
               {SITE.handle}
