@@ -1,5 +1,6 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { getDb, isDatabaseConfigured } from '@/lib/db';
 import { mapWishRow, type WishRow } from '@/lib/db/wishes';
 import { createClient } from '@/lib/supabase/server';
@@ -7,6 +8,32 @@ import { deleteWishMedia, signedMediaUrls, wishMediaExists } from '@/lib/service
 import type { BirthdayWish, ServiceResult, WishDraft, WishMediaType } from '@/types';
 import { hasErrors, validateWish } from '@/utils/validation';
 import { isValidWishMediaPath, isWishId, mediaTypeFromPath } from '@/utils/wishMedia';
+
+const RATE_LIMIT_WINDOW_MINUTES = 15;
+const RATE_LIMIT_MAX_PER_WINDOW = 5;
+const MIN_FILL_TIME_MS = 1500;
+
+function getClientIp(): string {
+  const list = headers();
+  const forwarded = list.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0]!.trim();
+  return list.get('x-real-ip') ?? 'unknown';
+}
+
+async function isRateLimited(db: NonNullable<ReturnType<typeof getDb>>, ip: string): Promise<boolean> {
+  if (ip === 'unknown') return false;
+  const rows = await db<{ count: string }[]>`
+    select count(*)::text as count
+    from public.wish_rate_limits
+    where ip = ${ip} and created_at > now() - make_interval(mins => ${RATE_LIMIT_WINDOW_MINUTES})
+  `;
+  return Number(rows[0]?.count ?? 0) >= RATE_LIMIT_MAX_PER_WINDOW;
+}
+
+async function logSubmission(db: NonNullable<ReturnType<typeof getDb>>, ip: string): Promise<void> {
+  if (ip === 'unknown') return;
+  await db`insert into public.wish_rate_limits (ip) values (${ip})`;
+}
 
 function draftFromFormData(formData: FormData): WishDraft {
   return {
@@ -31,6 +58,15 @@ export async function submitWish(formData: FormData): Promise<ServiceResult<true
   const mediaPathRaw = String(formData.get('mediaPath') ?? '').trim();
   const mediaPath = mediaPathRaw || null;
   const mediaTypeClaim = String(formData.get('mediaType') ?? '').trim() as WishMediaType | '';
+
+  const honeypot = String(formData.get('company') ?? '').trim();
+  const renderedAt = Number(formData.get('renderedAt') ?? 0);
+  const tooFast = renderedAt > 0 && Date.now() - renderedAt < MIN_FILL_TIME_MS;
+  if (honeypot || tooFast) {
+    // Bot-shaped submission — pretend success so it doesn't get retried, without touching the database.
+    await cleanupOrphanMedia(mediaPath, wishId);
+    return { data: true, error: null };
+  }
 
   const errors = validateWish(draft);
   if (hasErrors(errors)) {
@@ -77,6 +113,12 @@ export async function submitWish(formData: FormData): Promise<ServiceResult<true
     return { data: null, error: 'Could not connect to the database.' };
   }
 
+  const ip = getClientIp();
+  if (await isRateLimited(db, ip)) {
+    await cleanupOrphanMedia(mediaPath, wishId);
+    return { data: null, error: "You're sending wishes a little too fast — please wait a few minutes and try again." };
+  }
+
   try {
     await db`
       insert into public.wishes (
@@ -92,6 +134,7 @@ export async function submitWish(formData: FormData): Promise<ServiceResult<true
         ${draft.hideFromLive ?? false}
       )
     `;
+    await logSubmission(db, ip);
     return { data: true, error: null };
   } catch {
     await cleanupOrphanMedia(mediaPath, wishId);

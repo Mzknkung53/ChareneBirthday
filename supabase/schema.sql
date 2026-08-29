@@ -49,6 +49,20 @@ create table public.admin_users (
 
 comment on table public.admin_users is 'Allowlist of users who can read wishes. Add rows manually only.';
 
+-- One row per successful wish submission, keyed by IP — lets submitWish() throttle spam.
+create table public.wish_rate_limits (
+  id         bigserial   primary key,
+  ip         text        not null,
+  created_at timestamptz not null default now()
+);
+
+create index wish_rate_limits_ip_created_idx on public.wish_rate_limits (ip, created_at desc);
+
+comment on table public.wish_rate_limits is 'Read/written only over the direct DATABASE_URL connection from submitWish() — never via supabase-js.';
+
+alter table public.wish_rate_limits enable row level security;
+-- No policies: never queried through supabase-js (anon/authenticated).
+
 -- ---------------------------------------------------------------------------
 -- Helpers (for RLS)
 -- ---------------------------------------------------------------------------

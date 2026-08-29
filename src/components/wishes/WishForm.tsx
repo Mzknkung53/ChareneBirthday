@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { submitWish } from '@/app/actions/wishes';
 import { uploadWishMediaDirect } from '@/lib/services/clientUpload';
 import { Button } from '@/components/ui/Button';
@@ -30,6 +30,8 @@ export function WishForm({ onSent }: WishFormProps) {
   const [sent, setSent] = useState(false);
   const [successVisible, setSuccessVisible] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  const [honeypot, setHoneypot] = useState('');
+  const renderedAtRef = useRef(Date.now());
 
   useEffect(() => {
     if (!draft.media) {
@@ -84,6 +86,8 @@ export function WishForm({ onSent }: WishFormProps) {
     formData.set('message', draft.message.trim());
     formData.set('sticker', draft.sticker ?? '♡');
     formData.set('hideFromLive', String(draft.hideFromLive ?? false));
+    formData.set('company', honeypot);
+    formData.set('renderedAt', String(renderedAtRef.current));
     if (mediaPath) {
       formData.set('mediaPath', mediaPath);
       formData.set('mediaType', mediaType);
@@ -109,6 +113,19 @@ export function WishForm({ onSent }: WishFormProps) {
 
       <div className="mx-auto grid max-w-[1000px] items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)] lg:gap-8">
       <form onSubmit={handleSubmit} noValidate className="glass grid min-w-0 gap-4 rounded-feature p-5 shadow-card sm:p-8">
+        <div aria-hidden="true" className="absolute h-px w-px overflow-hidden opacity-0" style={{ left: '-9999px' }}>
+          <label htmlFor="wish-company">Company</label>
+          <input
+            id="wish-company"
+            name="company"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+          />
+        </div>
+
         <TextField
           label="Display name"
           placeholder="ชื่อของคุณ / your name"
