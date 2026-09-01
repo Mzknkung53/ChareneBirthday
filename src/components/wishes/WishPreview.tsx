@@ -2,6 +2,7 @@
 
 import { WishCard } from '@/components/wishes/WishCard';
 import type { BirthdayWish, WishDraft, WishMediaType } from '@/types';
+import { resolveDisplayName } from '@/utils/validation';
 
 interface WishPreviewProps {
   draft: WishDraft;
@@ -13,7 +14,7 @@ interface WishPreviewProps {
 export function WishPreview({ draft, mediaUrl, mediaType }: WishPreviewProps) {
   const wish: BirthdayWish = {
     id: 'preview',
-    displayName: draft.displayName.trim() || 'your name',
+    displayName: resolveDisplayName(draft.displayName),
     handle: draft.handle?.trim() || undefined,
     message: draft.message.trim() || 'เขียนคำอวยพรถึงชารีน… your wish will look like this for Charene.',
     sticker: draft.sticker,

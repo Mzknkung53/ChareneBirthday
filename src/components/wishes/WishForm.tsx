@@ -12,7 +12,7 @@ import { LivePrivacyPicker } from '@/components/wishes/LivePrivacyPicker';
 import { WishPreview } from '@/components/wishes/WishPreview';
 import { WishSentSuccess } from '@/components/wishes/WishSentSuccess';
 import type { WishDraft, WishMediaType } from '@/types';
-import { NAME_MAX, hasErrors, mediaKind, validateWish, type WishErrors } from '@/utils/validation';
+import { NAME_MAX, hasErrors, mediaKind, resolveDisplayName, validateWish, type WishErrors } from '@/utils/validation';
 
 interface WishFormProps {
   onSent?: () => void;
@@ -81,7 +81,7 @@ export function WishForm({ onSent }: WishFormProps) {
     setSendingLabel('Sending…');
     const formData = new FormData();
     formData.set('wishId', wishId);
-    formData.set('displayName', draft.displayName.trim());
+    formData.set('displayName', resolveDisplayName(draft.displayName));
     formData.set('handle', draft.handle?.trim() ?? '');
     formData.set('message', draft.message.trim());
     formData.set('sticker', draft.sticker ?? '♡');
@@ -128,7 +128,9 @@ export function WishForm({ onSent }: WishFormProps) {
 
         <TextField
           label="Display name"
+          optional
           placeholder="ชื่อของคุณ / your name"
+          hint="เว้นว่างเพื่อส่งแบบไม่ระบุชื่อ / leave blank to send as Anonymous."
           value={draft.displayName}
           maxLength={NAME_MAX}
           error={errors.displayName}

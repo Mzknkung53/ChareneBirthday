@@ -2,6 +2,12 @@ import type { WishDraft, WishMediaType } from '@/types';
 
 export const MESSAGE_MAX = 400;
 export const NAME_MAX = 32;
+export const ANONYMOUS_DISPLAY_NAME = 'Anonymous';
+
+export function resolveDisplayName(raw: string): string {
+  const trimmed = raw.trim();
+  return trimmed || ANONYMOUS_DISPLAY_NAME;
+}
 export const IMAGE_MAX_BYTES = 8 * 1024 * 1024;
 export const VIDEO_MAX_BYTES = 50 * 1024 * 1024;
 export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -22,8 +28,7 @@ export function validateWish(draft: WishDraft): WishErrors {
   const name = draft.displayName.trim();
   const message = draft.message.trim();
 
-  if (!name) errors.displayName = 'We need a name to put on the card — anything you like.';
-  else if (name.length > NAME_MAX) errors.displayName = 'That name is a little long — up to ' + NAME_MAX + ' characters.';
+  if (name.length > NAME_MAX) errors.displayName = 'That name is a little long — up to ' + NAME_MAX + ' characters.';
 
   if (!message) errors.message = 'The card is still empty — write a line for her, in Thai or English.';
   else if (message.length > MESSAGE_MAX) errors.message = 'That message is a little long — try trimming to ' + MESSAGE_MAX + ' characters.';

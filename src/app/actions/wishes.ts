@@ -6,7 +6,7 @@ import { mapWishRow, type WishRow } from '@/lib/db/wishes';
 import { createClient } from '@/lib/supabase/server';
 import { deleteWishMedia, signedMediaUrls, wishMediaExists } from '@/lib/services/uploads';
 import type { BirthdayWish, ServiceResult, WishDraft, WishMediaType } from '@/types';
-import { hasErrors, validateWish } from '@/utils/validation';
+import { hasErrors, resolveDisplayName, validateWish } from '@/utils/validation';
 import { isValidWishMediaPath, isWishId, mediaTypeFromPath } from '@/utils/wishMedia';
 
 const RATE_LIMIT_WINDOW_MINUTES = 15;
@@ -135,7 +135,7 @@ export async function submitWish(formData: FormData): Promise<ServiceResult<true
         id, display_name, handle, message, sticker, media_url, media_type, hide_from_live
       ) values (
         ${wishId},
-        ${draft.displayName.trim()},
+        ${resolveDisplayName(draft.displayName)},
         ${draft.handle?.trim() || null},
         ${draft.message.trim()},
         ${draft.sticker ?? null},
