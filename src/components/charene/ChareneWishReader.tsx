@@ -46,20 +46,26 @@ function NavArrow({
   const label = direction === 'prev' ? 'Previous wish' : 'Next wish';
 
   return (
-    <button
-      type="button"
-      aria-label={label}
-      disabled={disabled}
-      onClick={onClick}
-      className={cn(
-        'grid h-12 w-12 shrink-0 place-items-center rounded-full border border-pink-200/80 bg-white/90',
-        'font-ui text-xl text-rose-600 shadow-soft transition-all',
-        'hover:border-rose-300 hover:bg-white hover:shadow-card',
-        'disabled:pointer-events-none disabled:opacity-35',
-      )}
-    >
-      {direction === 'prev' ? '‹' : '›'}
-    </button>
+    /**
+     * Pinned near the top of the card and sticky at mid-viewport, so the arrows sit in the
+     * same spot for every wish instead of drifting with the height of the attached photo.
+     */
+    <div className="sticky top-[calc(50vh-1.5rem)] mt-24 shrink-0">
+      <button
+        type="button"
+        aria-label={label}
+        disabled={disabled}
+        onClick={onClick}
+        className={cn(
+          'grid h-12 w-12 place-items-center rounded-full border border-pink-200/80 bg-white/90',
+          'font-ui text-xl text-rose-600 shadow-soft transition-all',
+          'hover:border-rose-300 hover:bg-white hover:shadow-card',
+          'disabled:pointer-events-none disabled:opacity-35',
+        )}
+      >
+        {direction === 'prev' ? '‹' : '›'}
+      </button>
+    </div>
   );
 }
 
@@ -363,7 +369,7 @@ export function ChareneWishReader() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 sm:gap-5">
+            <div className="flex items-start gap-3 sm:gap-5">
               <NavArrow direction="prev" disabled={index <= 0} onClick={() => go(-1)} />
 
               <div className="min-w-0 flex-1 touch-pan-y">
