@@ -43,18 +43,31 @@ export function MediaDrop({ file, previewUrl, mediaType, error, onPick }: MediaD
 
       {previewUrl && file && mediaType ? (
         <figure className="relative m-0 overflow-hidden rounded-field border border-pink-200 bg-white">
-          <div className="relative h-44 w-full overflow-hidden bg-ink-900/5">
+          <div className="relative h-48 w-full overflow-hidden bg-ink-900/5 sm:h-52">
             {mediaType === 'video' ? (
               <video
                 src={previewUrl}
                 controls
                 playsInline
                 preload="metadata"
-                className="absolute inset-0 h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-contain object-center"
               />
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={previewUrl} alt={'Preview of ' + file.name} className="absolute inset-0 h-full w-full object-cover" />
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover object-center opacity-45 blur-xl"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewUrl}
+                  alt={'Preview of ' + file.name}
+                  className="absolute inset-0 h-full w-full object-contain object-center"
+                />
+              </>
             )}
           </div>
           <div className="flex items-center justify-between gap-2 p-2">

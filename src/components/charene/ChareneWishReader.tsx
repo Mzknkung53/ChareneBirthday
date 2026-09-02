@@ -111,7 +111,7 @@ function WishReaderSlide({
         displayName={wish.displayName}
         hideFromLive={hideFromLive}
         hideEmptyMedia
-        mediaClassName="h-56 sm:h-72"
+        mediaVariant="feature"
         messageClassName="text-center text-[17px] leading-[1.85] sm:text-lg"
         onToggleHideFromLive={(hidden) => onToggleHideFromLive(wish.id, hidden)}
       />

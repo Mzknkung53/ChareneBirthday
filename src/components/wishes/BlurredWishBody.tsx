@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/utils/cn';
 import { WishMedia, WishMediaPlaceholder } from '@/components/wishes/WishMedia';
+import type { WishMediaVariant } from '@/components/wishes/WishMedia';
 import type { WishMediaType } from '@/types';
 
 const badgeBase =
@@ -19,6 +20,8 @@ interface BlurredWishBodyProps {
   /** Admin inbox — tap badge to persist blur, tap overlay to read. */
   onToggleHideFromLive?: (hidden: boolean) => void;
   mediaClassName?: string;
+  /** 'card' keeps grid cards level; 'feature' lets the media keep its own shape. */
+  mediaVariant?: WishMediaVariant;
   messageClassName?: string;
   /** Reader layout — skip the empty media slot when there is no attachment. */
   hideEmptyMedia?: boolean;
@@ -33,6 +36,7 @@ export function BlurredWishBody({
   demo,
   onToggleHideFromLive,
   mediaClassName,
+  mediaVariant = 'card',
   messageClassName,
   hideEmptyMedia,
 }: BlurredWishBodyProps) {
@@ -97,9 +101,10 @@ export function BlurredWishBody({
               mediaType={mediaType!}
               alt={(mediaType === 'video' ? 'Video from ' : 'Photo from ') + displayName}
               className={mediaClassName}
+              variant={mediaVariant}
             />
           ) : hideEmptyMedia ? null : (
-            <WishMediaPlaceholder className={mediaClassName} />
+            <WishMediaPlaceholder className={mediaClassName} variant={mediaVariant} />
           )}
 
           <div className="min-h-[3.5rem]">
