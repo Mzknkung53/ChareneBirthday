@@ -137,6 +137,54 @@ function WishReaderSlide({
   );
 }
 
+/** Dots stay a fixed width no matter how many wishes there are — only a window slides. */
+const DOT_WINDOW = 9;
+
+function WishDots({
+  wishes,
+  index,
+  onSelect,
+}: {
+  wishes: BirthdayWish[];
+  index: number;
+  onSelect: (wishId: string, step: number) => void;
+}) {
+  const total = wishes.length;
+  const size = Math.min(DOT_WINDOW, total);
+  const start = clampIndex(index - Math.floor(size / 2), total - size + 1);
+  const visible = wishes.slice(start, start + size);
+
+  return (
+    <div className="flex items-center gap-1.5">
+      {visible.map((wish, slot) => {
+        const dotIndex = start + slot;
+        const isActive = dotIndex === index;
+        // Distance to a hidden neighbour — the taper hints there is more in that direction.
+        const beforeHidden = start > 0 ? slot : Infinity;
+        const afterHidden = start + size < total ? size - 1 - slot : Infinity;
+        const fromHidden = Math.min(beforeHidden, afterHidden);
+
+        return (
+          <button
+            key={wish.id}
+            type="button"
+            aria-label={`Go to wish ${dotIndex + 1}`}
+            aria-current={isActive ? 'true' : undefined}
+            onClick={() => onSelect(wish.id, dotIndex > index ? 1 : -1)}
+            className={cn(
+              // Scale, not width, so the row never changes size.
+              'h-2 rounded-full transition-all duration-200',
+              isActive ? 'w-6 bg-rose-500' : 'w-2 bg-pink-200 hover:bg-pink-300',
+              !isActive && fromHidden === 0 ? 'scale-50' : '',
+              !isActive && fromHidden === 1 ? 'scale-75' : '',
+            )}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export function ChareneWishReader() {
   const router = useRouter();
   const pathname = usePathname();
@@ -351,22 +399,7 @@ export function ChareneWishReader() {
               <p className="font-ui text-sm tabular-nums text-ink-300">
                 {index + 1} / {filtered.length}
               </p>
-              <div className="flex gap-1.5">
-                {filtered.map((wish, dotIndex) => (
-                  <button
-                    key={wish.id}
-                    type="button"
-                    aria-label={`Go to wish ${dotIndex + 1}`}
-                    onClick={() => {
-                      selectWish(wish.id, dotIndex > index ? 1 : -1);
-                    }}
-                    className={cn(
-                      'h-2 rounded-full transition-all',
-                      dotIndex === index ? 'w-6 bg-rose-500' : 'w-2 bg-pink-200 hover:bg-pink-300',
-                    )}
-                  />
-                ))}
-              </div>
+              <WishDots wishes={filtered} index={index} onSelect={selectWish} />
             </div>
 
             <div className="flex items-start gap-3 sm:gap-5">
