@@ -22,7 +22,8 @@ export function ChareneInbox() {
     wishes,
     state,
     error,
-    load,
+    refresh,
+    refreshing,
     deleteTarget,
     setDeleteTarget,
     deleting,
@@ -141,7 +142,7 @@ export function ChareneInbox() {
               {tab.label} ({tab.count})
             </button>
           ))}
-          <Button variant="ghost" size="sm" onClick={() => void load()} className="ml-auto">
+          <Button variant="ghost" size="sm" loading={refreshing} onClick={() => void refresh()} className="ml-auto">
             Refresh
           </Button>
         </div>

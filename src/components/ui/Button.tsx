@@ -74,7 +74,7 @@ export function Button(props: ButtonProps | AnchorProps) {
 
   const buttonRest = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
   return (
-    <button className={classes} {...buttonRest}>
+    <button type="button" className={classes} {...buttonRest} disabled={loading || buttonRest.disabled}>
       {content}
     </button>
   );

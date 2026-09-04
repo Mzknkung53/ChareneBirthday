@@ -16,43 +16,67 @@ export function useAdminWishes() {
   const [wishes, setWishes] = useState<BirthdayWish[]>(() => peekAdminWishesCache() ?? []);
   const [state, setState] = useState<LoadState>(() => (peekAdminWishesCache() ? 'ready' : 'idle'));
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<BirthdayWish | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const load = useCallback(async () => {
-    // Keep showing existing cards while refreshing — don't flash skeletons.
-    setState((current) => (current === 'ready' || peekAdminWishesCache() ? 'ready' : 'loading'));
+  const load = useCallback(
+    async ({ force = false }: { force?: boolean } = {}) => {
+      if (force) {
+        clearAdminWishesCache();
+        setRefreshing(true);
+        setError(null);
+      } else {
+        // Keep showing existing cards while soft-loading — don't flash skeletons.
+        setState((current) => (current === 'ready' || peekAdminWishesCache() ? 'ready' : 'loading'));
+      }
 
-    const res = await listWishesForAdmin();
-    if (res.error) {
-      if (res.error === 'Please sign in.') {
-        clearAdminWishesCache();
-        router.replace('/charene');
-        return;
-      }
-      if (res.error.startsWith('You do not have access')) {
-        clearAdminWishesCache();
-        setError(res.error);
-        setState('error');
-        return;
-      }
-      // Soft-fail on refresh: keep stale data if we already have it.
-      if (peekAdminWishesCache()) {
+      try {
+        const res = await listWishesForAdmin();
+        if (res.error) {
+          if (res.error === 'Please sign in.') {
+            clearAdminWishesCache();
+            router.replace('/charene');
+            return;
+          }
+          if (res.error.startsWith('You do not have access')) {
+            clearAdminWishesCache();
+            setError(res.error);
+            setState('error');
+            return;
+          }
+          // Soft-fail on background refresh: keep stale data if we already have it.
+          if (!force && peekAdminWishesCache()) {
+            setError(null);
+            setState('ready');
+            return;
+          }
+          setError(res.error);
+          setState((current) => (current === 'ready' ? 'ready' : 'error'));
+          return;
+        }
+
+        const next = res.data ?? [];
+        setAdminWishesCache(next);
+        setWishes(next);
         setError(null);
         setState('ready');
-        return;
+      } catch {
+        if (!force && peekAdminWishesCache()) {
+          setError(null);
+          setState('ready');
+          return;
+        }
+        setError('Could not load wishes.');
+        setState((current) => (current === 'ready' ? 'ready' : 'error'));
+      } finally {
+        if (force) setRefreshing(false);
       }
-      setError(res.error);
-      setState('error');
-      return;
-    }
+    },
+    [router],
+  );
 
-    const next = res.data ?? [];
-    setAdminWishesCache(next);
-    setWishes(next);
-    setError(null);
-    setState('ready');
-  }, [router]);
+  const refresh = useCallback(() => load({ force: true }), [load]);
 
   useEffect(() => {
     void load();
@@ -100,6 +124,8 @@ export function useAdminWishes() {
     state,
     error,
     load,
+    refresh,
+    refreshing,
     deleteTarget,
     setDeleteTarget,
     deleting,

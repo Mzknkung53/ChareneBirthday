@@ -199,7 +199,8 @@ export function ChareneWishReader() {
     wishes,
     state,
     error,
-    load,
+    refresh,
+    refreshing,
     deleteTarget,
     setDeleteTarget,
     deleting,
@@ -351,7 +352,7 @@ export function ChareneWishReader() {
               <Button href="/charene/inbox" variant="ghost" size="sm">
                 Grid view
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => void load()}>
+              <Button variant="ghost" size="sm" loading={refreshing} onClick={() => void refresh()}>
                 Refresh
               </Button>
               <Button variant="secondary" size="sm" onClick={handleSignOut}>
