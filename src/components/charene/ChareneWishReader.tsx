@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { BlurredWishBody } from '@/components/wishes/BlurredWishBody';
 import { useAdminWishes } from '@/hooks/useAdminWishes';
 import { clearAdminWishesCache } from '@/lib/adminWishesCache';
+import { clearReaderPosition, readReaderPosition, saveReaderPosition } from '@/lib/readerPosition';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { createClient } from '@/lib/supabase/client';
 import type { BirthdayWish } from '@/types';
@@ -219,11 +220,17 @@ export function ChareneWishReader() {
 
   useEffect(() => {
     if (filtered.length === 0) return;
+    if (activeId && filtered.some((w) => w.id === activeId)) return;
 
-    if (!activeId || !filtered.some((w) => w.id === activeId)) {
-      setActiveId(filtered[0].id);
-    }
+    // Nothing selected yet (no ?id= in the URL) — pick up where this admin left off.
+    const remembered = activeId ? null : readReaderPosition();
+    const resume = remembered ? filtered.find((w) => w.id === remembered) : undefined;
+    setActiveId(resume?.id ?? filtered[0].id);
   }, [activeId, filtered]);
+
+  useEffect(() => {
+    if (activeId) saveReaderPosition(activeId);
+  }, [activeId]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -272,6 +279,7 @@ export function ChareneWishReader() {
 
   const handleSignOut = async () => {
     clearAdminWishesCache();
+    clearReaderPosition();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.replace('/charene');

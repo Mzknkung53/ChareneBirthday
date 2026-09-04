@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { WishCard } from '@/components/wishes/WishCard';
 import { useAdminWishes } from '@/hooks/useAdminWishes';
 import { clearAdminWishesCache } from '@/lib/adminWishesCache';
+import { clearReaderPosition } from '@/lib/readerPosition';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/utils/cn';
 
@@ -49,6 +50,7 @@ export function ChareneInbox() {
 
   const handleSignOut = async () => {
     clearAdminWishesCache();
+    clearReaderPosition();
     const supabase = createClient();
     await supabase.auth.signOut();
     router.replace('/charene');
